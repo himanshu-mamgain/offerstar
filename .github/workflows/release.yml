@@ -18,7 +18,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { runner: macos-14, asset: offerstar-macos-arm64, exe: dist/offerstar }
+          - { runner: macos-15, asset: offerstar-macos-arm64, exe: dist/offerstar }
           - { runner: ubuntu-24.04, asset: offerstar-linux-x64, exe: dist/offerstar }
           - { runner: ubuntu-24.04-arm, asset: offerstar-linux-arm64, exe: dist/offerstar }
           - { runner: windows-2022, asset: offerstar-windows-x64.exe, exe: dist/offerstar.exe }
