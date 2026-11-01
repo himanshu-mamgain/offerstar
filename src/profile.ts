@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { parse, stringify } from 'yaml';
 import { z } from 'zod';
@@ -57,6 +57,21 @@ export async function writeBlock(profileDir: string, block: EvidenceBlockInput):
     if ((err as NodeJS.ErrnoException).code === 'EEXIST') return undefined;
     throw err;
   }
+}
+
+// Deletes the block file with this id, wherever it lives; false if none.
+export async function removeBlock(profileDir: string, id: string): Promise<boolean> {
+  for (const folder of Object.values(PROFILE_FOLDERS)) {
+    for (const ext of ['yaml', 'yml']) {
+      try {
+        await unlink(join(profileDir, folder, `${id}.${ext}`));
+        return true;
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+      }
+    }
+  }
+  return false;
 }
 
 export interface ProfileProblem {

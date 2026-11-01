@@ -1,0 +1,12 @@
+{
+  "name": "offerstar",
+  "version": "0.1.0",
+  "description": "Skills and agents for the offerstar CLI: build an evidence profile, rank jobs, and draft grounded, ATS-checked applications for your approval.",
+  "author": {
+    "name": "Himanshu Mamgain"
+  },
+  "homepage": "https://github.com/himanshu-mamgain/offerstar",
+  "repository": "https://github.com/himanshu-mamgain/offerstar",
+  "license": "MIT",
+  "keywords": ["jobs", "resume", "ats", "career"]
+}

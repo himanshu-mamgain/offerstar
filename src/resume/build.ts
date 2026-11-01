@@ -43,9 +43,9 @@ export async function buildResume(
   paths: Paths,
   config: Config,
   profile: Profile,
-  opts: { blockIds?: string[]; out?: string; log?: (line: string) => void } = {},
+  opts: { blockIds?: string[]; data?: ResumeData; out?: string; model?: string; promptVersion?: string; log?: (line: string) => void } = {},
 ): Promise<BuiltResume> {
-  const data = resumeData(config, profile.blocks, opts.blockIds);
+  const data = opts.data ?? resumeData(config, profile.blocks, opts.blockIds);
   const blockIds = data.sections.flatMap((s) => s.items.map((i) => i.blockId));
   const typst = await ensureTypst(paths, opts.log);
 
@@ -58,10 +58,12 @@ export async function buildResume(
 
   const db = openDb(paths.db);
   try {
-    db.prepare('INSERT OR IGNORE INTO resume_versions (file_hash, profile_hash, block_ids, path) VALUES (?, ?, ?, ?)').run(
+    db.prepare('INSERT OR IGNORE INTO resume_versions (file_hash, profile_hash, block_ids, model, prompt_version, path) VALUES (?, ?, ?, ?, ?, ?)').run(
       fileHash,
       profile.hash,
       JSON.stringify(blockIds),
+      opts.model ?? null,
+      opts.promptVersion ?? null,
       path,
     );
     db.prepare("INSERT INTO events (kind, data) VALUES ('resume_built', ?)").run(JSON.stringify({ fileHash, path }));

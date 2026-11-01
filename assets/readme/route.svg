@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 260" width="1280" height="260" role="img" aria-labelledby="rt rd">
+  <title id="rt">The Offerstar workflow</title>
+  <desc id="rd">Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, then, coming soon, track records every reply and retro learns what gets calls.</desc>
+  <style>
+    .sans{font-family:'Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}
+    .mono{font-family:'JetBrains Mono','SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace}
+    .tw{fill:#E9ECFF;animation:tw 3s ease-in-out infinite}
+    @keyframes tw{0%,100%{opacity:.15}50%{opacity:.8}}
+    .base{stroke:#3A4478;stroke-width:2;stroke-dasharray:2 9;stroke-linecap:round}
+    .prog{stroke:#FFD66B;stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:prog 9s linear infinite}
+    @keyframes prog{0%,4.0%{stroke-dashoffset:1;opacity:1}69.0%,90%{stroke-dashoffset:0;opacity:1}96%,100%{stroke-dashoffset:0;opacity:0}}
+    .node{transform-box:fill-box;transform-origin:center;fill:#1A2150;stroke:#3A4478}
+    .cap{fill:#7F89C8}
+    @keyframes lit0{0%,4.0%{fill:#1A2150;stroke:#3A4478}6.0%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1.35)}9.0%,90%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1)}96%,100%{fill:#1A2150;stroke:#3A4478;transform:scale(1)}}
+    @keyframes cap0{0%,4.0%{fill:#7F89C8}7.0%,90%{fill:#F4F1E8}96%,100%{fill:#7F89C8}}
+    @keyframes lit1{0%,17.0%{fill:#1A2150;stroke:#3A4478}19.0%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1.35)}22.0%,90%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1)}96%,100%{fill:#1A2150;stroke:#3A4478;transform:scale(1)}}
+    @keyframes cap1{0%,17.0%{fill:#7F89C8}20.0%,90%{fill:#F4F1E8}96%,100%{fill:#7F89C8}}
+    @keyframes lit2{0%,30.0%{fill:#1A2150;stroke:#3A4478}32.0%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1.35)}35.0%,90%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1)}96%,100%{fill:#1A2150;stroke:#3A4478;transform:scale(1)}}
+    @keyframes cap2{0%,30.0%{fill:#7F89C8}33.0%,90%{fill:#F4F1E8}96%,100%{fill:#7F89C8}}
+    @keyframes lit3{0%,43.0%{fill:#1A2150;stroke:#3A4478}45.0%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1.35)}48.0%,90%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1)}96%,100%{fill:#1A2150;stroke:#3A4478;transform:scale(1)}}
+    @keyframes cap3{0%,43.0%{fill:#7F89C8}46.0%,90%{fill:#F4F1E8}96%,100%{fill:#7F89C8}}
+    @keyframes lit4{0%,56.0%{fill:#1A2150;stroke:#3A4478}58.0%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1.35)}61.0%,90%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1)}96%,100%{fill:#1A2150;stroke:#3A4478;transform:scale(1)}}
+    @keyframes cap4{0%,56.0%{fill:#7F89C8}59.0%,90%{fill:#F4F1E8}96%,100%{fill:#7F89C8}}
+    @keyframes lit5{0%,69.0%{fill:#1A2150;stroke:#3A4478}71.0%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1.35)}74.0%,90%{fill:#FFD66B;stroke:#FFE7A3;transform:scale(1)}96%,100%{fill:#1A2150;stroke:#3A4478;transform:scale(1)}}
+    @keyframes cap5{0%,69.0%{fill:#7F89C8}72.0%,90%{fill:#F4F1E8}96%,100%{fill:#7F89C8}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}.prog{stroke-dashoffset:0}.node{fill:#FFD66B;stroke:#FFE7A3}.cap{fill:#F4F1E8}}
+  </style>
+  <defs>
+    <linearGradient id="rsky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A0F24"/>
+      <stop offset=".6" stop-color="#121A3F"/>
+      <stop offset="1" stop-color="#1B1A4A"/>
+    </linearGradient>
+    <radialGradient id="rglow" cx="742" cy="0" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4C3F9E" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#4C3F9E" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="rframe"><rect width="1280" height="260" rx="24"/></clipPath>
+  </defs>
+  <g clip-path="url(#rframe)">
+    <rect width="1280" height="260" fill="url(#rsky)"/>
+    <rect width="1280" height="260" fill="url(#rglow)"/>
+    <circle class="tw" cx="580.6" cy="143.9" r="1.5" style="animation-duration:4.5s;animation-delay:-2.29s"/>
+    <circle class="tw" cx="749.1" cy="56.8" r="1.5" style="animation-duration:3s;animation-delay:-0.42s"/>
+    <circle class="tw" cx="394.6" cy="35.0" r="0.8" style="animation-duration:4.5s;animation-delay:-4.34s"/>
+    <circle class="tw" cx="832.1" cy="156.8" r="1" style="animation-duration:3s;animation-delay:-3.74s"/>
+    <circle class="tw" cx="94.8" cy="22.3" r="1" style="animation-duration:3s;animation-delay:-3.50s"/>
+    <circle class="tw" cx="423.2" cy="151.1" r="1" style="animation-duration:3s;animation-delay:-2.88s"/>
+    <circle class="tw" cx="639.7" cy="167.7" r="1.5" style="animation-duration:4.5s;animation-delay:-1.83s"/>
+    <circle class="tw" cx="704.0" cy="230.2" r="0.8" style="animation-duration:4.5s;animation-delay:-1.42s"/>
+    <circle class="tw" cx="302.6" cy="81.1" r="0.8" style="animation-duration:3s;animation-delay:-1.80s"/>
+    <circle class="tw" cx="1072.5" cy="103.7" r="0.8" style="animation-duration:3s;animation-delay:-0.96s"/>
+    <circle class="tw" cx="1172.9" cy="26.1" r="1.5" style="animation-duration:4.5s;animation-delay:-1.89s"/>
+    <circle class="tw" cx="722.7" cy="60.0" r="1.2" style="animation-duration:4.5s;animation-delay:-0.39s"/>
+    <circle class="tw" cx="431.1" cy="237.7" r="0.8" style="animation-duration:3s;animation-delay:-1.11s"/>
+    <circle class="tw" cx="142.1" cy="27.9" r="1.5" style="animation-duration:3s;animation-delay:-3.07s"/>
+    <circle class="tw" cx="251.1" cy="132.1" r="1" style="animation-duration:4.5s;animation-delay:-2.90s"/>
+    <circle class="tw" cx="161.4" cy="111.6" r="1" style="animation-duration:3s;animation-delay:-1.21s"/>
+    <circle class="tw" cx="1227.7" cy="200.4" r="1.2" style="animation-duration:3s;animation-delay:-0.95s"/>
+    <circle class="tw" cx="508.1" cy="212.2" r="0.8" style="animation-duration:3s;animation-delay:-4.45s"/>
+    <circle class="tw" cx="282.1" cy="73.9" r="1.2" style="animation-duration:4.5s;animation-delay:-1.74s"/>
+    <circle class="tw" cx="108.7" cy="62.4" r="1" style="animation-duration:3s;animation-delay:-2.71s"/>
+    <circle class="tw" cx="479.9" cy="119.1" r="1.5" style="animation-duration:3s;animation-delay:-3.90s"/>
+    <circle class="tw" cx="244.2" cy="49.8" r="1" style="animation-duration:3s;animation-delay:-3.26s"/>
+    <circle class="tw" cx="213.8" cy="159.9" r="1" style="animation-duration:4.5s;animation-delay:-3.97s"/>
+    <circle class="tw" cx="769.2" cy="111.8" r="0.8" style="animation-duration:3s;animation-delay:-0.17s"/>
+    <circle class="tw" cx="1217.4" cy="69.3" r="1.5" style="animation-duration:4.5s;animation-delay:-1.89s"/>
+    <circle class="tw" cx="1145.2" cy="127.9" r="1" style="animation-duration:3s;animation-delay:-0.57s"/>
+    <circle class="tw" cx="614.2" cy="165.6" r="0.8" style="animation-duration:4.5s;animation-delay:-0.96s"/>
+    <circle class="tw" cx="1157.9" cy="187.8" r="0.8" style="animation-duration:4.5s;animation-delay:-1.85s"/>
+    <circle class="tw" cx="326.8" cy="24.8" r="1.2" style="animation-duration:4.5s;animation-delay:-2.39s"/>
+    <circle class="tw" cx="1230.4" cy="35.4" r="1" style="animation-duration:4.5s;animation-delay:-4.41s"/>
+    <circle class="tw" cx="835.9" cy="174.4" r="1" style="animation-duration:3s;animation-delay:-4.16s"/>
+    <circle class="tw" cx="608.5" cy="96.9" r="1.2" style="animation-duration:3s;animation-delay:-0.10s"/>
+    <circle class="tw" cx="810.0" cy="125.9" r="1.2" style="animation-duration:4.5s;animation-delay:-0.61s"/>
+    <circle class="tw" cx="106.4" cy="119.1" r="1.2" style="animation-duration:3s;animation-delay:-4.05s"/>
+    <circle class="tw" cx="935.9" cy="177.3" r="1.2" style="animation-duration:4.5s;animation-delay:-0.38s"/>
+    <circle class="tw" cx="606.7" cy="32.0" r="1.5" style="animation-duration:3s;animation-delay:-3.89s"/>
+    <circle class="tw" cx="730.9" cy="159.0" r="1.5" style="animation-duration:4.5s;animation-delay:-2.62s"/>
+    <circle class="tw" cx="775.9" cy="32.6" r="0.8" style="animation-duration:4.5s;animation-delay:-3.96s"/>
+    <circle class="tw" cx="924.8" cy="104.1" r="1.5" style="animation-duration:4.5s;animation-delay:-2.08s"/>
+    <circle class="tw" cx="691.5" cy="134.3" r="0.8" style="animation-duration:4.5s;animation-delay:-2.71s"/>
+    <circle class="tw" cx="616.2" cy="67.4" r="0.8" style="animation-duration:4.5s;animation-delay:-3.51s"/>
+    <circle class="tw" cx="839.8" cy="126.8" r="0.8" style="animation-duration:4.5s;animation-delay:-1.35s"/>
+    <circle class="tw" cx="862.3" cy="61.0" r="1" style="animation-duration:4.5s;animation-delay:-2.97s"/>
+    <circle class="tw" cx="567.5" cy="220.9" r="1.2" style="animation-duration:4.5s;animation-delay:-3.00s"/>
+    <circle class="tw" cx="263.7" cy="114.0" r="1" style="animation-duration:3s;animation-delay:-1.73s"/>
+    <circle class="tw" cx="743.7" cy="87.4" r="1" style="animation-duration:3s;animation-delay:-2.23s"/>
+    <text class="mono" x="40" y="40" font-size="15" fill="#6F79B8">the offerstar workflow</text>
+    <line class="base" x1="130" y1="104" x2="1150" y2="104"/>
+    <line class="prog" x1="130" y1="104" x2="1150" y2="104" pathLength="1"/>
+    <g>
+      <circle class="node" style="animation:lit0 9s ease-out infinite" cx="130" cy="104" r="15" stroke-width="2"/>
+      <circle cx="130" cy="104" r="4.5" fill="#F6F2E6"/>
+      <text class="mono" x="130" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">setup</text>
+      <text class="sans cap" style="animation:cap0 9s ease-out infinite" x="130" y="190" text-anchor="middle" font-size="17">Build your profile</text>
+    </g>
+    <g>
+      <circle class="node" style="animation:lit1 9s ease-out infinite" cx="334" cy="104" r="15" stroke-width="2"/>
+      <circle cx="334" cy="104" r="4.5" fill="#F6F2E6"/>
+      <text class="mono" x="334" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">scan</text>
+      <text class="sans cap" style="animation:cap1 9s ease-out infinite" x="334" y="190" text-anchor="middle" font-size="17">Find new jobs</text>
+    </g>
+    <g>
+      <circle class="node" style="animation:lit2 9s ease-out infinite" cx="538" cy="104" r="15" stroke-width="2"/>
+      <circle cx="538" cy="104" r="4.5" fill="#F6F2E6"/>
+      <text class="mono" x="538" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">plan</text>
+      <text class="sans cap" style="animation:cap2 9s ease-out infinite" x="538" y="190" text-anchor="middle" font-size="17">Rank the best fits</text>
+    </g>
+    <g>
+      <circle class="node" style="animation:lit3 9s ease-out infinite" cx="742" cy="104" r="15" stroke-width="2"/>
+      <circle cx="742" cy="104" r="4.5" fill="#F6F2E6"/>
+      <text class="mono" x="742" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#FFD66B">apply</text>
+      <text class="sans cap" style="animation:cap3 9s ease-out infinite" x="742" y="190" text-anchor="middle" font-size="17">Tailor, check, approve</text>
+    </g>
+    <g>
+      <circle class="node" style="animation:lit4 9s ease-out infinite" cx="946" cy="104" r="15" stroke-width="2"/>
+      <circle cx="946" cy="104" r="4.5" fill="#F6F2E6"/>
+      <text class="mono" x="946" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">track</text>
+      <text class="sans cap" style="animation:cap4 9s ease-out infinite" x="946" y="190" text-anchor="middle" font-size="17">Record every reply</text>
+      <text class="sans" x="946" y="216" text-anchor="middle" font-size="13" fill="#6F79B8">coming soon</text>
+    </g>
+    <g>
+      <circle class="node" style="animation:lit5 9s ease-out infinite" cx="1150" cy="104" r="15" stroke-width="2"/>
+      <circle cx="1150" cy="104" r="4.5" fill="#F6F2E6"/>
+      <text class="mono" x="1150" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">retro</text>
+      <text class="sans cap" style="animation:cap5 9s ease-out infinite" x="1150" y="190" text-anchor="middle" font-size="17">Learn what gets calls</text>
+      <text class="sans" x="1150" y="216" text-anchor="middle" font-size="13" fill="#6F79B8">coming soon</text>
+    </g>
+  </g>
+</svg>

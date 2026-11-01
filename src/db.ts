@@ -115,6 +115,13 @@ const MIGRATIONS: string[] = [
   ALTER TABLE jobs ADD COLUMN guard_flags TEXT NOT NULL DEFAULT '[]';
   CREATE INDEX jobs_company ON jobs (company_id, source, status);
   `,
+  `
+  -- One application per job; its files live in applications/<folder>.
+  CREATE UNIQUE INDEX applications_one_per_job ON applications (job_id);
+  ALTER TABLE applications ADD COLUMN folder TEXT;
+  -- 1 when the rendered resume passed offerstar check; approval requires it.
+  ALTER TABLE applications ADD COLUMN check_ok INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

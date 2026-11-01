@@ -1,0 +1,16 @@
+{
+  "name": "offerstar",
+  "owner": {
+    "name": "Himanshu Mamgain"
+  },
+  "metadata": {
+    "description": "Offerstar: agentic job search with evidence-backed resumes. You approve every application."
+  },
+  "plugins": [
+    {
+      "name": "offerstar",
+      "source": "./plugin",
+      "description": "Skills and agents for the offerstar CLI: build an evidence profile, rank jobs, and draft grounded, ATS-checked applications for your approval."
+    }
+  ]
+}

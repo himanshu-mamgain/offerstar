@@ -20,6 +20,11 @@ export const RESUME_TEMPLATE = `#let data = json("resume.json")
 
 #c.details.join("  |  ")
 
+#if data.at("summary", default: none) != none [
+  = Summary
+  #data.summary
+]
+
 #for section in data.sections [
   #heading(level: 1, section.heading)
   #for item in section.items [
