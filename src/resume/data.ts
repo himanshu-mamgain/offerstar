@@ -13,6 +13,7 @@ export interface ResumeItem {
 export interface ResumeData {
   paper: Config['resume']['paper'];
   contact: { name: string; details: string[] };
+  summary?: string;
   sections: { heading: string; items: ResumeItem[] }[];
   skills: string[];
 }

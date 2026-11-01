@@ -41,8 +41,10 @@ export async function checkResume(
 
   add('pages', pages >= 1 && pages <= 2 ? 'ok' : 'fail', `${pages} page${pages === 1 ? '' : 's'}${pages > 2 ? '; keep it to one or two' : ''}`);
 
-  if (flat.length < 200) {
+  if (flat.length < 50) {
     add('text', 'fail', 'little or no text layer; an ATS would see an empty resume (is it a scanned image?)');
+  } else if (flat.length < 300) {
+    add('text', 'warn', `only ${flat.split(' ').length} words; a recruiter will expect more detail`);
   } else {
     add('text', 'ok', `${flat.split(' ').length} words extracted`);
   }

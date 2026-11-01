@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 480" width="1280" height="480" role="img" aria-labelledby="t d">
+  <title id="t">Offerstar</title>
+  <desc id="d">A guiding star carries a resume through scan, plan and apply to an offer letter. Steer every application toward the offer.</desc>
+  <style>
+    .sans{font-family:'Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}
+    .mono{font-family:'JetBrains Mono','SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace}
+    .tw{fill:#E9ECFF;opacity:.3;animation:tw 3s ease-in-out infinite}
+    @keyframes tw{0%,100%{opacity:.18}50%{opacity:.95}}
+    .route{fill:none;stroke:#7B86D6;stroke-width:2;stroke-linecap:round;stroke-dasharray:2 10;opacity:.55;animation:flow 1.5s linear infinite}
+    @keyframes flow{to{stroke-dashoffset:-24}}
+    .trail{fill:none;stroke:url(#trail);stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:trail 9s cubic-bezier(.45,.05,.35,1) infinite}
+    @keyframes trail{0%{stroke-dashoffset:1;opacity:1}70%{stroke-dashoffset:0;opacity:1}86%,100%{stroke-dashoffset:0;opacity:0}}
+    .tara{offset-path:path("M 772 352 C 806 350, 832 342, 852 328 S 902 262, 934 250 S 1004 230, 1034 216 S 1084 132, 1098 112");offset-rotate:0deg;animation:fly 9s cubic-bezier(.45,.05,.35,1) infinite}
+    @keyframes fly{0%{offset-distance:0%;opacity:0}5%{opacity:1}70%{offset-distance:100%;opacity:1}82%,100%{offset-distance:100%;opacity:0}}
+    .spin{animation:spin 4.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .bob{animation:bob 1.5s ease-in-out infinite alternate}
+    @keyframes bob{from{transform:translateY(-2px)}to{transform:translateY(2px)}}
+    .node{fill:#C9CEFF;opacity:.35;transform-box:fill-box;transform-origin:center}
+    .n1{animation:n1 9s ease-out infinite}
+    .n2{animation:n2 9s ease-out infinite}
+    .n3{animation:n3 9s ease-out infinite}
+    @keyframes n1{0%,15%{opacity:.35;transform:scale(1)}19%{opacity:1;fill:#FFD66B;transform:scale(1.6)}25%,90%{opacity:1;fill:#FFD66B;transform:scale(1)}100%{opacity:.35;transform:scale(1)}}
+    @keyframes n2{0%,33%{opacity:.35;transform:scale(1)}37%{opacity:1;fill:#FFD66B;transform:scale(1.6)}43%,90%{opacity:1;fill:#FFD66B;transform:scale(1)}100%{opacity:.35;transform:scale(1)}}
+    @keyframes n3{0%,49%{opacity:.35;transform:scale(1)}53%{opacity:1;fill:#FFD66B;transform:scale(1.6)}59%,90%{opacity:1;fill:#FFD66B;transform:scale(1)}100%{opacity:.35;transform:scale(1)}}
+    .lbl{fill:#8D97DA;font-size:14px}
+    .ring{fill:none;stroke:#FFD66B;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:ring 9s ease-out infinite}
+    .ring2{animation-delay:.3s}
+    @keyframes ring{0%,68%{transform:scale(.5);opacity:0}71%{opacity:.9}90%,100%{transform:scale(2.2);opacity:0}}
+    .badge{transform-box:fill-box;transform-origin:center;animation:badge 9s cubic-bezier(.2,.9,.25,1.35) infinite}
+    @keyframes badge{0%,69%{transform:scale(0)}76%,95%{transform:scale(1)}100%{transform:scale(0)}}
+    .cmd{opacity:0;animation:cmd 9s steps(1) infinite}
+    .cmd2{animation-delay:-6s}
+    .cmd3{animation-delay:-3s}
+    @keyframes cmd{0%{opacity:1}33.333%,100%{opacity:0}}
+    .type{animation:type 3s steps(16,end) infinite}
+    @keyframes type{0%{transform:translateX(0)}40%,100%{transform:translateX(232px)}}
+    .caret{animation:blink 1s steps(1) infinite}
+    @keyframes blink{50%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}.cmd1{opacity:1}.type{display:none}}
+  </style>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A0F24"/>
+      <stop offset=".55" stop-color="#121A3F"/>
+      <stop offset="1" stop-color="#1B1A4A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="1060" cy="150" r="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4C3F9E" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#4C3F9E" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="772" y1="352" x2="1098" y2="112">
+      <stop offset="0" stop-color="#FFD66B" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#FFD66B" stop-opacity=".95"/>
+    </linearGradient>
+    <radialGradient id="gold" cx=".4" cy=".35" r=".8">
+      <stop offset="0" stop-color="#FFF4C2"/>
+      <stop offset=".55" stop-color="#FFD66B"/>
+      <stop offset="1" stop-color="#F2A93B"/>
+    </radialGradient>
+    <filter id="halo" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <clipPath id="frame"><rect width="1280" height="480" rx="24"/></clipPath>
+    <clipPath id="pill"><rect x="40" y="6" width="390" height="46"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="480" fill="url(#sky)"/>
+    <rect width="1280" height="480" fill="url(#glow)"/>
+    <circle class="tw" cx="421.6" cy="85.0" r="0.8" style="animation-duration:3s;animation-delay:-1.1s"/>
+    <circle class="tw" cx="296.8" cy="296.6" r="1.6" style="animation-duration:4.5s;animation-delay:-0.22s"/>
+    <circle class="tw" cx="714.7" cy="320.8" r="0.8" style="animation-duration:3s;animation-delay:-1.12s"/>
+    <circle class="tw" cx="699.2" cy="45.9" r="0.8" style="animation-duration:3s;animation-delay:-1.49s"/>
+    <circle class="tw" cx="679.3" cy="363.1" r="1.3" style="animation-duration:4.5s;animation-delay:-1.63s"/>
+    <circle class="tw" cx="328.0" cy="97.8" r="0.8" style="animation-duration:4.5s;animation-delay:-2.36s"/>
+    <circle class="tw" cx="1105.2" cy="341.9" r="1.1" style="animation-duration:3s;animation-delay:-0.35s"/>
+    <circle class="tw" cx="626.3" cy="35.4" r="1.6" style="animation-duration:4.5s;animation-delay:-1.53s"/>
+    <circle class="tw" cx="454.2" cy="238.5" r="0.8" style="animation-duration:3s;animation-delay:-2.83s"/>
+    <circle class="tw" cx="889.9" cy="305.3" r="2.0" style="animation-duration:4.5s;animation-delay:-1.28s"/>
+    <circle class="tw" cx="327.0" cy="191.6" r="0.8" style="animation-duration:3s;animation-delay:-1.35s"/>
+    <circle class="tw" cx="701.3" cy="410.2" r="1.3" style="animation-duration:4.5s;animation-delay:-3.18s"/>
+    <circle class="tw" cx="1243.2" cy="321.1" r="1.3" style="animation-duration:3s;animation-delay:-0.45s"/>
+    <circle class="tw" cx="722.3" cy="441.2" r="2.0" style="animation-duration:3s;animation-delay:-1.37s"/>
+    <circle class="tw" cx="1100.0" cy="440.6" r="2.0" style="animation-duration:4.5s;animation-delay:-1.79s"/>
+    <circle class="tw" cx="722.8" cy="256.3" r="1.1" style="animation-duration:3s;animation-delay:-0.21s"/>
+    <circle class="tw" cx="1204.8" cy="285.4" r="1.3" style="animation-duration:3s;animation-delay:-0.35s"/>
+    <circle class="tw" cx="406.7" cy="82.0" r="2.0" style="animation-duration:4.5s;animation-delay:-2.15s"/>
+    <circle class="tw" cx="878.2" cy="247.3" r="1.0" style="animation-duration:4.5s;animation-delay:-0.66s"/>
+    <circle class="tw" cx="693.5" cy="30.0" r="1.6" style="animation-duration:4.5s;animation-delay:-4.4s"/>
+    <circle class="tw" cx="1090.5" cy="327.1" r="1.1" style="animation-duration:4.5s;animation-delay:-4.09s"/>
+    <circle class="tw" cx="643.3" cy="300.6" r="1.6" style="animation-duration:3s;animation-delay:-2.42s"/>
+    <circle class="tw" cx="1034.7" cy="346.5" r="1.0" style="animation-duration:3s;animation-delay:-1.55s"/>
+    <circle class="tw" cx="366.5" cy="133.1" r="1.1" style="animation-duration:4.5s;animation-delay:-3.64s"/>
+    <circle class="tw" cx="916.7" cy="173.2" r="1.1" style="animation-duration:3s;animation-delay:-0.66s"/>
+    <circle class="tw" cx="793.8" cy="417.7" r="0.8" style="animation-duration:4.5s;animation-delay:-4.09s"/>
+    <circle class="tw" cx="446.6" cy="303.6" r="0.8" style="animation-duration:4.5s;animation-delay:-3.52s"/>
+    <circle class="tw" cx="950.2" cy="230.2" r="1.0" style="animation-duration:4.5s;animation-delay:-3.55s"/>
+    <circle class="tw" cx="432.3" cy="373.6" r="1.3" style="animation-duration:4.5s;animation-delay:-1.81s"/>
+    <circle class="tw" cx="1194.0" cy="339.8" r="1.0" style="animation-duration:3s;animation-delay:-0.08s"/>
+    <circle class="tw" cx="752.6" cy="224.6" r="2.0" style="animation-duration:3s;animation-delay:-1.83s"/>
+    <circle class="tw" cx="758.9" cy="228.6" r="1.1" style="animation-duration:3s;animation-delay:-1.65s"/>
+    <circle class="tw" cx="182.4" cy="24.3" r="2.0" style="animation-duration:3s;animation-delay:-1.58s"/>
+    <circle class="tw" cx="1177.7" cy="210.6" r="1.0" style="animation-duration:3s;animation-delay:-0.08s"/>
+    <circle class="tw" cx="283.8" cy="240.5" r="1.1" style="animation-duration:4.5s;animation-delay:-2.45s"/>
+    <circle class="tw" cx="1054.4" cy="45.0" r="2.0" style="animation-duration:4.5s;animation-delay:-4.04s"/>
+    <circle class="tw" cx="841.5" cy="379.9" r="1.6" style="animation-duration:4.5s;animation-delay:-3.72s"/>
+    <circle class="tw" cx="1108.9" cy="76.1" r="1.0" style="animation-duration:3s;animation-delay:-2.62s"/>
+    <circle class="tw" cx="982.9" cy="288.2" r="1.0" style="animation-duration:3s;animation-delay:-0.42s"/>
+    <circle class="tw" cx="787.7" cy="71.4" r="0.8" style="animation-duration:4.5s;animation-delay:-3.07s"/>
+    <circle class="tw" cx="678.1" cy="232.2" r="0.8" style="animation-duration:3s;animation-delay:-0.75s"/>
+    <circle class="tw" cx="716.5" cy="355.4" r="0.8" style="animation-duration:4.5s;animation-delay:-1.47s"/>
+    <circle class="tw" cx="1227.0" cy="287.1" r="1.0" style="animation-duration:4.5s;animation-delay:-2.04s"/>
+    <circle class="tw" cx="681.3" cy="230.2" r="1.0" style="animation-duration:4.5s;animation-delay:-4.15s"/>
+    <circle class="tw" cx="1127.0" cy="107.9" r="1.3" style="animation-duration:3s;animation-delay:-1.25s"/>
+    <circle class="tw" cx="506.5" cy="158.3" r="1.3" style="animation-duration:3s;animation-delay:-0.64s"/>
+    <circle class="tw" cx="395.4" cy="72.3" r="2.0" style="animation-duration:4.5s;animation-delay:-0.64s"/>
+    <circle class="tw" cx="1114.7" cy="447.6" r="1.0" style="animation-duration:3s;animation-delay:-1.19s"/>
+
+    <!-- route and waypoints -->
+    <path class="route" d="M 772 352 C 806 350, 832 342, 852 328 S 902 262, 934 250 S 1004 230, 1034 216 S 1084 132, 1098 112"/>
+    <path class="trail" d="M 772 352 C 806 350, 832 342, 852 328 S 902 262, 934 250 S 1004 230, 1034 216 S 1084 132, 1098 112" pathLength="1"/>
+    <polygon class="node n1" points="852,321 854,326 859,328 854,330 852,335 850,330 845,328 850,326"/>
+    <polygon class="node n2" points="934,243 936,248 941,250 936,252 934,257 932,252 927,250 932,248"/>
+    <polygon class="node n3" points="1034,209 1036,214 1041,216 1036,218 1034,223 1032,218 1027,216 1032,214"/>
+    <text class="mono lbl" x="866" y="348">scan</text>
+    <text class="mono lbl" x="946" y="274">plan</text>
+    <text class="mono lbl" x="1044" y="242">apply</text>
+
+    <!-- resume card -->
+    <g transform="translate(706 318) rotate(-7)">
+      <rect width="62" height="80" rx="7" fill="#EEF0FF"/>
+      <rect x="10" y="12" width="26" height="6" rx="3" fill="#5A64B8"/>
+      <rect x="10" y="26" width="42" height="4" rx="2" fill="#B9BFEA"/>
+      <rect x="10" y="36" width="36" height="4" rx="2" fill="#B9BFEA"/>
+      <rect x="10" y="46" width="42" height="4" rx="2" fill="#B9BFEA"/>
+      <rect x="10" y="56" width="28" height="4" rx="2" fill="#B9BFEA"/>
+    </g>
+
+    <!-- offer letter -->
+    <g transform="translate(1110 72)">
+      <circle class="ring" cx="42" cy="34" r="30"/>
+      <circle class="ring ring2" cx="42" cy="34" r="30"/>
+      <rect width="84" height="60" rx="8" fill="#F6F2E6"/>
+      <path d="M2 6 L42 36 L82 6" fill="none" stroke="#D7CDB4" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="42" cy="36" r="9" fill="#E8B23A"/>
+      <g class="badge">
+        <circle cx="80" cy="4" r="15" fill="#34D399"/>
+        <path d="M73 4 l5 5 l9 -10" fill="none" stroke="#0A2A1F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <text class="sans" x="42" y="86" text-anchor="middle" font-size="15" font-weight="700" fill="#F6F2E6" letter-spacing="2">OFFER</text>
+    </g>
+
+    <!-- Tara, the guiding star -->
+    <g class="tara">
+      <g class="bob">
+        <circle r="20" fill="#FFD66B" opacity=".55" filter="url(#halo)"/>
+        <g class="spin"><polygon points="0.00,-17.00 4.23,-5.82 16.17,-5.25 6.85,2.22 9.99,13.75 0.00,7.20 -9.99,13.75 -6.85,2.22 -16.17,-5.25 -4.23,-5.82" fill="url(#gold)" stroke="#F2A93B" stroke-width="1"/></g>
+        <circle cx="-4" cy="-1" r="1.8" fill="#2A1E05"/>
+        <circle cx="4" cy="-1" r="1.8" fill="#2A1E05"/>
+      </g>
+    </g>
+
+    <!-- text side -->
+    <text class="sans" x="88" y="196" font-size="112" font-weight="800" letter-spacing="-3" fill="#F6F2E6">Offerstar</text>
+    <text class="sans" x="92" y="254" font-size="30" font-weight="500" fill="#B9C2FF">Steer every application toward the offer.</text>
+
+    <g transform="translate(92 292)">
+      <rect width="440" height="58" rx="12" fill="#060A1A" stroke="#28316A"/>
+      <text class="mono" x="22" y="37" font-size="24" font-weight="700" fill="#FFD66B">&#8250;</text>
+      <g class="mono" font-size="24" fill="#E8ECFF">
+        <text class="cmd cmd1" x="48" y="37">offerstar scan</text>
+        <text class="cmd cmd2" x="48" y="37">offerstar plan</text>
+        <text class="cmd cmd3" x="48" y="37">/offerstar:apply</text>
+      </g>
+      <g clip-path="url(#pill)">
+        <g class="type">
+          <rect x="46" y="10" width="240" height="38" fill="#060A1A"/>
+          <rect class="caret" x="46" y="16" width="12" height="26" fill="#FFD66B" opacity=".85"/>
+        </g>
+      </g>
+    </g>
+
+    <text class="sans" x="92" y="398" font-size="19" fill="#8790C9">A CLI with Claude Code skills. Your data is stored on your laptop.</text>
+  </g>
+</svg>

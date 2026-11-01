@@ -7,6 +7,9 @@
   "repository": "github:himanshu-mamgain/offerstar",
   "private": true,
   "type": "module",
+  "bin": {
+    "offerstar": "bin/offerstar.js"
+  },
   "engines": {
     "node": ">=22.18"
   },
