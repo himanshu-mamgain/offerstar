@@ -52,8 +52,10 @@ export async function ensureTypst(paths: Paths, log: (line: string) => void = ()
   await mkdir(staging, { recursive: true });
   const archive = join(staging, asset.name);
   await writeFile(archive, bytes);
-  // bsdtar (Windows 10+, macOS) and GNU tar both read these archives.
-  const result = spawnSync('tar', ['-xf', archive, '-C', staging], { encoding: 'utf8', windowsHide: true });
+  // On Windows, use the system bsdtar, which reads .zip: Git for Windows puts
+  // GNU tar on PATH, and GNU tar can't, and reads "C:" as a remote host.
+  const tar = process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
+  const result = spawnSync(tar, ['-xf', archive, '-C', staging], { encoding: 'utf8', windowsHide: true });
   if (result.status !== 0) throw new Error(`could not unpack Typst: ${(result.stderr || '').trim()}`);
 
   const found = await findFile(staging, exe);

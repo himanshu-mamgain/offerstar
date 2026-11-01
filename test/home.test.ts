@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { loadConfig } from '../src/config.ts';
 import { initHome } from '../src/home.ts';
-import { isOwnerOnly } from '../src/secure.ts';
+import { aclPrincipals, isOwnerOnly } from '../src/secure.ts';
 import { tempPaths } from './helpers.ts';
 
 test('init creates the folder layout, config and database', async () => {
@@ -34,5 +34,5 @@ test('init locks an existing .env to the current user', async () => {
   await writeFile(paths.env, 'USERNAME=me@example.com\n', { mode: 0o644 });
 
   await initHome(paths);
-  assert.equal(await isOwnerOnly(paths.env), true);
+  assert.equal(await isOwnerOnly(paths.env), true, process.platform === 'win32' ? `access list: ${aclPrincipals(paths.env).join(', ')}` : undefined);
 });
