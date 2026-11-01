@@ -1,7 +1,7 @@
 # offerstar
 Agentic job search CLI with Claude skills. Evidence-backed resume, job discovery from career pages and portals, fit ranking, tailored ATS-checked resumes and application tracking. You approve every application.
 
-> Early development: the evidence profile and resume building work; job search and applying come next.
+> Early development: the evidence profile, resume building and job discovery work; applying comes next.
 
 ## Development
 
@@ -14,6 +14,11 @@ npm run offerstar -- import github <user>   # one project block per public repo 
 npm run offerstar -- import npm <user>      # one project block per npm package you maintain
 npm run offerstar -- resume build           # renders a PDF from your evidence blocks
 npm run offerstar -- check <pdf>            # round-trip parse test, as an ATS would read it
+npm run offerstar -- companies add <name or careers URL>   # finds its Greenhouse, Lever or Ashby board
+npm run offerstar -- scan                   # fetches, cleans and dedupes jobs from every tracked company
+npm run offerstar -- paste --title "..." --company "..." < posting.txt   # a posting copied from anywhere
+npm run offerstar -- plan                   # scores open jobs against your profile; prints the shortlist
+npm run offerstar -- jobs show <id>         # one cleaned posting with its skills and guard flags
 npm run offerstar -- doctor                 # checks the install and the Offerstar folder
 npm run typecheck
 npm test
