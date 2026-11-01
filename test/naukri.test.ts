@@ -20,7 +20,7 @@ import {
 } from '../src/naukri/naukri.ts';
 import { EvidenceBlockSchema, type Profile } from '../src/profile.ts';
 import { dailyScript } from '../src/schedule.ts';
-import { isOwnerOnly } from '../src/secure.ts';
+import { aclPrincipals, isOwnerOnly } from '../src/secure.ts';
 import { markNoReplies } from '../src/track/track.ts';
 import { recordOutcome } from '../src/track/tracker.ts';
 import { tempPaths } from './helpers.ts';
@@ -174,7 +174,7 @@ test('the Naukri login is kept in an owner-only .env alongside other keys', asyn
   await writeFile(paths.env, 'ANTHROPIC_API_KEY="sk-test"\n');
   await writeEnv(paths, { NAUKRI_USERNAME: 'me@example.com', NAUKRI_PASSWORD: 'p"w' });
   assert.deepEqual(await readEnv(paths), { ANTHROPIC_API_KEY: 'sk-test', NAUKRI_USERNAME: 'me@example.com', NAUKRI_PASSWORD: 'pw' });
-  assert.equal(await isOwnerOnly(paths.env), true);
+  assert.equal(await isOwnerOnly(paths.env), true, process.platform === 'win32' ? `access list: ${aclPrincipals(paths.env).join(', ')}` : undefined);
 });
 
 test('the daily script runs scan, track and the refresh, logging to daily.log', async () => {

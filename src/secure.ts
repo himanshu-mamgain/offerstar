@@ -15,20 +15,32 @@ export async function restrictToOwner(file: string): Promise<void> {
   if (result.status !== 0) {
     throw new Error(`icacls failed: ${(result.stderr || result.stdout || '').trim()}`);
   }
+  // Also drop explicit entries for Everyone, Authenticated Users and Users
+  // (by SID, so it works in any Windows language).
+  spawnSync('icacls', [file, '/remove:g', '*S-1-1-0', '*S-1-5-11', '*S-1-5-32-545'], { encoding: 'utf8', windowsHide: true });
 }
+
+// The accounts in a Windows file's access list, lowercased ("domain\user").
+export function aclPrincipals(file: string): string[] {
+  const result = spawnSync('icacls', [file], { encoding: 'utf8', windowsHide: true });
+  if (result.status !== 0) return [];
+  // Each rule line looks like "DOMAIN\user:(F)"; the first one also starts with the file path.
+  return result.stdout
+    .split(/\r?\n/)
+    .map((line) => (line.toLowerCase().startsWith(file.toLowerCase()) ? line.slice(file.length) : line).trim())
+    .filter((line) => /:\(.*\)/.test(line))
+    .map((line) => line.slice(0, line.indexOf(':(')).toLowerCase());
+}
+
+// SYSTEM and Administrators can read every file on the machine regardless,
+// so their presence does not expose the file to other ordinary accounts.
+const ALWAYS_ALLOWED = new Set(['nt authority\\system', 'builtin\\administrators']);
 
 export async function isOwnerOnly(file: string): Promise<boolean> {
   if (process.platform !== 'win32') {
     return ((await stat(file)).mode & 0o077) === 0;
   }
-  const result = spawnSync('icacls', [file], { encoding: 'utf8' });
-  if (result.status !== 0) return false;
-  // Each rule line looks like "DOMAIN\user:(F)"; the first one also starts with the file path.
-  const principals = result.stdout
-    .split(/\r?\n/)
-    .map((line) => (line.startsWith(file) ? line.slice(file.length) : line).trim())
-    .filter((line) => /:\(.*\)/.test(line))
-    .map((line) => line.slice(0, line.indexOf(':(')).toLowerCase());
+  const principals = aclPrincipals(file);
   const me = userInfo().username.toLowerCase();
-  return principals.length > 0 && principals.every((p) => p === me || p.endsWith(`\\${me}`));
+  return principals.some((p) => p === me || p.endsWith(`\\${me}`)) && principals.every((p) => p === me || p.endsWith(`\\${me}`) || ALWAYS_ALLOWED.has(p));
 }
