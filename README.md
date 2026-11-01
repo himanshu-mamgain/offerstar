@@ -27,13 +27,23 @@
 
 > Early development: the evidence profile, resume building, job discovery, the apply flow and tracking work. The Naukri add-on, installers and the learning loop come next.
 
-## Use it with Claude Code
+## Install
+
+One binary, no Node needed:
 
 ```sh
-npm install && npm link          # puts the offerstar command on your PATH (Node 22.18+)
+# macOS (Apple silicon) and Linux
+curl -fsSL https://raw.githubusercontent.com/himanshu-mamgain/offerstar/main/install.sh | sh
 ```
 
-Then, in Claude Code:
+```powershell
+# Windows
+irm https://raw.githubusercontent.com/himanshu-mamgain/offerstar/main/install.ps1 | iex
+```
+
+Both scripts verify the download against the release's `checksums.txt`. Once the npm package is published, Node 22.18+ users can run `npm i -g offerstar` instead.
+
+## Use it with Claude Code
 
 ```
 /plugin install offerstar --marketplace himanshu-mamgain/offerstar
@@ -46,13 +56,16 @@ Claude drafts; the CLI refuses any bullet, number, skill or screening answer the
 
 ## Development
 
-Needs Node 22.18 or newer, which runs the TypeScript sources directly.
+Needs Node 22.18 or newer, which runs the TypeScript sources directly. `npm link` puts this checkout's `offerstar` on your PATH.
+
+To release: set `version` in package.json, then push a matching tag (`git tag v0.1.0 && git push origin v0.1.0`). The release workflow tests on every OS, builds the four binaries with Node 26, and publishes them with `checksums.txt`, a Homebrew formula and a Scoop manifest.
 
 ```sh
 npm install
 npm run offerstar -- init --role "Backend engineer" --name "Your Name" --email you@example.com --phone "+91 ..."
 npm run offerstar -- import github <user>   # one project block per public repo you own
 npm run offerstar -- import npm <user>      # one project block per npm package you maintain
+npm run offerstar -- import pypi|maven|appstore|cocoapods|docker|credly ...   # other roles and certifications
 npm run offerstar -- resume build           # renders a PDF from your evidence blocks
 npm run offerstar -- check <pdf>            # round-trip parse test, as an ATS would read it
 npm run offerstar -- companies add <name or careers URL>   # finds its Greenhouse, Lever or Ashby board

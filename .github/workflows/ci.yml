@@ -22,6 +22,10 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - name: Bundle and smoke test the bundle
+        run: |
+          npm run bundle
+          node dist/offerstar.mjs --version
       - name: Smoke test init and doctor
         shell: bash
         env:

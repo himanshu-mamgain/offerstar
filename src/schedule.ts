@@ -2,29 +2,29 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { Paths } from './paths.ts';
+import { selfCommand } from './runtime.ts';
 
 const TASK = 'Offerstar daily';
 const LABEL = 'com.offerstar.daily';
 const CRON_MARK = '# offerstar-daily';
-const CLI = fileURLToPath(new URL('../bin/offerstar.js', import.meta.url));
 
 // The daily run: scan and track every morning; the Naukri refresh decides
 // for itself whether it is due. Output goes to logs/daily.log.
-export function dailyScript(paths: Paths, platform = process.platform): { file: string; text: string } {
-  const node = process.execPath;
+export function dailyScript(paths: Paths, platform = process.platform, self = selfCommand()): { file: string; text: string } {
   const log = join(paths.logs, 'daily.log');
   const steps = ['scan', 'track', 'naukri refresh --scheduled'];
   if (platform === 'win32') {
+    const cmd = self.map((p) => `"${p}"`).join(' ');
     return {
       file: join(paths.bin, 'daily.cmd'),
-      text: ['@echo off', `set "OFFERSTAR_HOME=${paths.home}"`, `echo === %DATE% %TIME% >> "${log}"`, ...steps.map((s) => `"${node}" "${CLI}" ${s} >> "${log}" 2>&1`), ''].join('\r\n'),
+      text: ['@echo off', `set "OFFERSTAR_HOME=${paths.home}"`, `echo === %DATE% %TIME% >> "${log}"`, ...steps.map((s) => `${cmd} ${s} >> "${log}" 2>&1`), ''].join('\r\n'),
     };
   }
+  const cmd = self.map((p) => `'${p}'`).join(' ');
   return {
     file: join(paths.bin, 'daily.sh'),
-    text: ['#!/bin/sh', `export OFFERSTAR_HOME='${paths.home}'`, `echo "=== $(date)" >> '${log}'`, ...steps.map((s) => `'${node}' '${CLI}' ${s} >> '${log}' 2>&1`), ''].join('\n'),
+    text: ['#!/bin/sh', `export OFFERSTAR_HOME='${paths.home}'`, `echo "=== $(date)" >> '${log}'`, ...steps.map((s) => `${cmd} ${s} >> '${log}' 2>&1`), ''].join('\n'),
   };
 }
 

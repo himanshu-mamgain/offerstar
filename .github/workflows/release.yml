@@ -1,0 +1,93 @@
+name: Release
+
+# Push a tag such as v0.1.0 (matching package.json) to build and publish.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  # Single executables are built with this exact Node; the blob must match it.
+  NODE_VERSION: '26.13.0'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { runner: macos-14, asset: offerstar-macos-arm64, exe: dist/offerstar }
+          - { runner: ubuntu-24.04, asset: offerstar-linux-x64, exe: dist/offerstar }
+          - { runner: ubuntu-24.04-arm, asset: offerstar-linux-arm64, exe: dist/offerstar }
+          - { runner: windows-2022, asset: offerstar-windows-x64.exe, exe: dist/offerstar.exe }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Check the tag matches package.json
+        shell: bash
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build the single executable
+        run: node scripts/build.mjs sea
+      - name: Smoke test the binary
+        shell: bash
+        env:
+          OFFERSTAR_HOME: ${{ runner.temp }}/offerstar-home
+        run: |
+          ./${{ matrix.exe }} --version
+          ./${{ matrix.exe }} init
+          ./${{ matrix.exe }} doctor
+      - name: Rename for release
+        shell: bash
+        run: mkdir -p out && cp "${{ matrix.exe }}" "out/${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: out/${{ matrix.asset }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Checksums, Homebrew formula and Scoop manifest
+        run: |
+          cd out && sha256sum offerstar-* > checksums.txt && cd ..
+          node scripts/release-manifests.mjs "${GITHUB_REF_NAME#v}" out/checksums.txt out
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" out/* --title "$GITHUB_REF_NAME" --generate-notes
+
+  npm:
+    # Runs only once the repository variable PUBLISH_NPM is "true", the
+    # NPM_TOKEN secret is set, and "private" is removed from package.json.
+    needs: build
+    if: vars.PUBLISH_NPM == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      contents: read
+      id-token: write

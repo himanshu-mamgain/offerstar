@@ -20,6 +20,7 @@ import { formatDoctor, runDoctor } from './doctor.ts';
 import { initHome } from './home.ts';
 import { importGithub } from './importers/github.ts';
 import { importNpm } from './importers/npm.ts';
+import { importAppStore, importCocoapods, importCredly, importDocker, importMaven, importPypi } from './importers/registries.ts';
 import { findBoard, listCompanies, saveCompany } from './jobs/companies.ts';
 import { planShortlist, type JobRow } from './jobs/score.ts';
 import { SOURCES } from './jobs/sources.ts';
@@ -161,6 +162,23 @@ importer
   .action(async (user: string, opts: { dryRun?: boolean; json?: boolean }) => {
     await saveBlocks(await importNpm(user), opts);
   });
+
+const registry = (name: string, args: string, description: string, load: (input: string[]) => Promise<EvidenceBlockInput[]>) =>
+  importer
+    .command(`${name} ${args}`)
+    .description(description)
+    .option('--dry-run', 'show the blocks without writing them')
+    .option('--json', 'print machine-readable output')
+    .action(async (input: string | string[], opts: { dryRun?: boolean; json?: boolean }) => {
+      await saveBlocks(await load(Array.isArray(input) ? input : [input]), opts);
+    });
+
+registry('pypi', '<packages...>', 'One project block per PyPI package you name (PyPI does not list packages by user)', (names) => importPypi(names));
+registry('maven', '<groupId>', 'One project block per artifact published under your Maven Central groupId', ([g]) => importMaven(g!));
+registry('appstore', '<developerId>', 'One project block per app of an App Store developer (the id in the developer page URL)', ([id]) => importAppStore(id!));
+registry('docker', '<user>', 'One project block per public Docker Hub image of a user or organisation', ([u]) => importDocker(u!));
+registry('cocoapods', '<pods...>', 'One project block per CocoaPods pod you name', (names) => importCocoapods(names));
+registry('credly', '<user>', 'One certification block per Credly badge, verified by its issuer', ([u]) => importCredly(u!));
 
 importer
   .command('cv <pdf>')

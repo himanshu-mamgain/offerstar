@@ -1,9 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { Paths } from '../paths.ts';
+import { packageFile } from '../runtime.ts';
 import { isOwnerOnly, restrictToOwner } from '../secure.ts';
 
 // NopeRi has no licence, so Offerstar never ships its code: setup downloads
@@ -13,8 +13,6 @@ export const NOPERI_COMMIT = '8c3d7f55ee34d4ea6fabd950598b66628b49db41';
 
 // Only what the bridge's code paths import; Selenium is left out.
 const PACKAGES = ['requests', 'urllib3', 'pycryptodome', 'httpcloak==1.6.1', 'curl_cffi==0.15.0'];
-
-const BRIDGE_SOURCE = fileURLToPath(new URL('../../addons/naukri/bridge.py', import.meta.url));
 
 export function addonDir(paths: Paths) {
   const dir = join(paths.addons, 'naukri');
@@ -68,7 +66,7 @@ export async function setupNaukri(paths: Paths, log: (line: string) => void = ()
   const pip = run('uv', ['pip', 'install', '--python', a.python, ...PACKAGES]);
   if (pip.status !== 0) throw new Error(`installing packages failed: ${pip.stderr.trim()}`);
 
-  await copyFile(BRIDGE_SOURCE, a.bridge);
+  await writeFile(a.bridge, await packageFile('addons/naukri/bridge.py'));
 }
 
 // ~/.offerstar/.env as key=value lines, kept readable only by the user.

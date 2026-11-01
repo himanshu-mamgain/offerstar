@@ -13,20 +13,30 @@
   "engines": {
     "node": ">=22.18"
   },
+  "files": [
+    "bin/",
+    "dist/offerstar.mjs",
+    "dist/offerstar.mjs.LEGAL.txt",
+    "addons/",
+    "plugin/",
+    ".claude-plugin/"
+  ],
   "scripts": {
     "offerstar": "node --disable-warning=ExperimentalWarning src/cli.ts",
     "typecheck": "tsc",
-    "test": "node --test \"test/**/*.test.ts\""
-  },
-  "dependencies": {
-    "cheerio": "^1.2.0",
-    "commander": "^15.0.0",
-    "unpdf": "^2.1.0",
-    "yaml": "^2.9.1",
-    "zod": "^4.6.7"
+    "test": "node --test \"test/**/*.test.ts\"",
+    "bundle": "node scripts/build.mjs",
+    "sea": "node scripts/build.mjs sea",
+    "prepack": "node scripts/build.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
-    "typescript": "^7.0.2"
+    "cheerio": "^1.2.0",
+    "commander": "^15.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "unpdf": "^2.1.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
   }
 }

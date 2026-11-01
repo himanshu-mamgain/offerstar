@@ -36,11 +36,17 @@ offerstar config set dealBreakers '["night shift"]'
 
 ## 4. Evidence from public sources
 
-Ask for their GitHub and npm usernames, then preview:
+Ask where their work is public, then preview from each source that applies:
 
 ```
 offerstar import github <user> --dry-run --json
 offerstar import npm <user> --dry-run --json
+offerstar import pypi <package> <package> --dry-run --json      # Python: name the packages
+offerstar import maven <groupId> --dry-run --json               # Java: their Maven Central groupId
+offerstar import appstore <developerId> --dry-run --json        # iOS: the id in their App Store developer URL
+offerstar import cocoapods <pod> --dry-run --json               # iOS: name the pods
+offerstar import docker <user> --dry-run --json                 # DevOps: Docker Hub user or organisation
+offerstar import credly <user> --dry-run --json                 # certifications, verified by the issuer
 ```
 
 Show the list and ask which projects they would actually put on a resume (old tutorials and course exercises usually not). Import, then remove the ones they rejected:
