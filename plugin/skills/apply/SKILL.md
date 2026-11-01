@@ -51,6 +51,8 @@ Pick the evidence blocks that best support this job, most relevant first. Rewrit
 
 `summary`, `skills`, `coverNote` and `answers` are optional. Keep the resume to one page for under five years of experience, two at most.
 
+If the prepare file has a `suggestedAngle`, a resume-angle test is running or an angle was adopted: add `"angle": "<suggestedAngle>"` to the draft and lead with the evidence that angle emphasises. The facts stay the same; only the order and emphasis change.
+
 ## 5. Review
 
 Give the `reviewer` agent the draft file and the prepare file. It critiques the draft for this job and audits every line against the cited blocks. Apply its edits, and cut any claim it finds unsupported.

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 260" width="1280" height="260" role="img" aria-labelledby="rt rd">
   <title id="rt">The Offerstar workflow</title>
-  <desc id="rd">Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, then, coming soon, track records every reply and retro learns what gets calls.</desc>
+  <desc id="rd">Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, track records every reply, and retro learns what gets calls.</desc>
   <style>
     .sans{font-family:'Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}
     .mono{font-family:'JetBrains Mono','SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace}
@@ -118,14 +118,12 @@
       <circle cx="946" cy="104" r="4.5" fill="#F6F2E6"/>
       <text class="mono" x="946" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">track</text>
       <text class="sans cap" style="animation:cap4 9s ease-out infinite" x="946" y="190" text-anchor="middle" font-size="17">Record every reply</text>
-      <text class="sans" x="946" y="216" text-anchor="middle" font-size="13" fill="#6F79B8">coming soon</text>
     </g>
     <g>
       <circle class="node" style="animation:lit5 9s ease-out infinite" cx="1150" cy="104" r="15" stroke-width="2"/>
       <circle cx="1150" cy="104" r="4.5" fill="#F6F2E6"/>
       <text class="mono" x="1150" y="160" text-anchor="middle" font-size="25" font-weight="700" fill="#C9CEFF">retro</text>
       <text class="sans cap" style="animation:cap5 9s ease-out infinite" x="1150" y="190" text-anchor="middle" font-size="17">Learn what gets calls</text>
-      <text class="sans" x="1150" y="216" text-anchor="middle" font-size="13" fill="#6F79B8">coming soon</text>
     </g>
   </g>
 </svg>

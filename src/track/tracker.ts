@@ -125,15 +125,22 @@ const DIMENSIONS: Record<string, string> = {
   seniority_match: 'a.seniority_match',
   company_type: 'a.company_type',
   resume_variant: 'a.resume_version_id',
+  resume_angle: 'a.resume_angle',
   days_since_posting: "CASE WHEN a.days_since_posting IS NULL THEN NULL WHEN a.days_since_posting <= 3 THEN '0-3 days' WHEN a.days_since_posting <= 7 THEN '4-7 days' WHEN a.days_since_posting <= 14 THEN '8-14 days' ELSE '15+ days' END",
 };
 
+// SQL over applications aliased "a": did it ever reach one of these stages?
+const reached = (stages: string[]) =>
+  `EXISTS (SELECT 1 FROM events e WHERE e.application_id = a.id AND e.kind = 'outcome' AND json_extract(e.data, '$.stage') IN (${stages.map((s) => `'${s}'`).join(',')}))`;
+// An application "got a call" if any outcome ever reached a call stage,
+// even if it was rejected later.
+export const CALLED_SQL = `(${reached([...CALL_STAGES])} OR a.stage IN ('call', 'screening', 'interview', 'offer'))`;
+// Applications that were actually sent.
+export const SENT_SQL = "a.stage NOT IN ('drafted', 'withdrawn')";
+
 export function insights(db: DatabaseSync): Insights {
-  // An application "got a call" if any outcome ever reached a call stage.
-  const reached = (stages: string[]) =>
-    `EXISTS (SELECT 1 FROM events e WHERE e.application_id = a.id AND e.kind = 'outcome' AND json_extract(e.data, '$.stage') IN (${stages.map((s) => `'${s}'`).join(',')}))`;
-  const called = `(${reached([...CALL_STAGES])} OR a.stage IN ('call', 'screening', 'interview', 'offer'))`;
-  const sent = "a.stage NOT IN ('drafted', 'withdrawn')";
+  const called = CALLED_SQL;
+  const sent = SENT_SQL;
 
   const funnel = db
     .prepare(

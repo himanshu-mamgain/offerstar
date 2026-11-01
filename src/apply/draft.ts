@@ -14,6 +14,9 @@ export const DraftSchema = z.object({
   jobId: z.number().int(),
   model: z.string().optional(),
   promptVersion: z.string().optional(),
+  // The emphasis this draft takes, e.g. "backend" or "payments"; the
+  // learning loop compares angles' call rates on similar jobs.
+  angle: z.string().regex(/^[a-z0-9-]+$/, 'lowercase words joined by hyphens').optional(),
   summary: cited.optional(),
   items: z.array(z.object({ blockId: z.string(), bullets: z.array(cited).min(1) })).min(1),
   skills: z.array(z.string()).optional(),
