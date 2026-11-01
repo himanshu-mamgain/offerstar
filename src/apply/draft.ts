@@ -34,23 +34,25 @@ function blockText(b: EvidenceBlock): string {
 
 const configValue = (config: Config, key: string): unknown => key.split('.').reduce<unknown>((v, k) => (v && typeof v === 'object' ? (v as Record<string, unknown>)[k] : undefined), config);
 
+// One cited line: every block it cites exists, and every number it states
+// appears in those blocks.
+export function auditCited(where: string, line: { text: string; cites: string[] }, profile: Profile): string[] {
+  const byId = new Map(profile.blocks.map((b) => [b.id, b]));
+  if (line.cites.length === 0) return [`${where}: cite at least one evidence block`];
+  const missing = line.cites.filter((id) => !byId.has(id));
+  if (missing.length) return [`${where}: cites unknown block ${missing.join(', ')}`];
+  const sources = line.cites.map((id) => blockText(byId.get(id)!)).join('\n');
+  const sourceNumbers = new Set((sources.match(NUMBERS) ?? []).map((n) => n.replace(/,/g, '')));
+  return (line.text.match(NUMBERS) ?? [])
+    .filter((n) => !sourceNumbers.has(n.replace(/,/g, '')))
+    .map((n) => `${where}: the number ${n} is not in ${line.cites.join(', ')}`);
+}
+
 // Returns the problems that block rendering; an empty list means grounded.
 export function auditDraft(draft: Draft, profile: Profile, config: Config): string[] {
   const problems: string[] = [];
   const byId = new Map(profile.blocks.map((b) => [b.id, b]));
-
-  const checkCited = (where: string, line: { text: string; cites: string[] }) => {
-    const missing = line.cites.filter((id) => !byId.has(id));
-    if (missing.length) {
-      problems.push(`${where}: cites unknown block ${missing.join(', ')}`);
-      return;
-    }
-    const sources = line.cites.map((id) => blockText(byId.get(id)!)).join('\n');
-    const sourceNumbers = new Set((sources.match(NUMBERS) ?? []).map((n) => n.replace(/,/g, '')));
-    for (const n of line.text.match(NUMBERS) ?? []) {
-      if (!sourceNumbers.has(n.replace(/,/g, ''))) problems.push(`${where}: the number ${n} is not in ${line.cites.join(', ')}`);
-    }
-  };
+  const checkCited = (where: string, line: { text: string; cites: string[] }) => problems.push(...auditCited(where, line, profile));
 
   if (draft.summary) checkCited('summary', draft.summary);
   if (draft.coverNote) checkCited('cover note', draft.coverNote);

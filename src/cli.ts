@@ -10,6 +10,10 @@ import pkg from '../package.json' with { type: 'json' };
 import { approveApplication, NeedsApproval, prepareApply, renderApplication, type ApprovalView } from './apply/application.ts';
 import { DraftSchema } from './apply/draft.ts';
 import { applicationStatus, insights, rateJob, recordOutcome, STAGES, type Stage } from './track/tracker.ts';
+import { closedApplications, markNoReplies } from './track/track.ts';
+import { addonDir, bridgeRunner, isInstalled, setupNaukri, writeEnv } from './naukri/addon.ts';
+import { approveVariants, naukriSearch, recordSignal, refreshProfile, setVariants, syncHistory, variantInsights, VariantsSchema, type SignalKind, type Variants } from './naukri/naukri.ts';
+import { installSchedule, removeSchedule } from './schedule.ts';
 import { loadConfig, updateConfig } from './config.ts';
 import { openDb } from './db.ts';
 import { formatDoctor, runDoctor } from './doctor.ts';
@@ -247,9 +251,21 @@ program
   .description('Fetch new jobs from every tracked company, clean them through the posting guard and dedupe them')
   .option('--json', 'print machine-readable output')
   .action(async (opts: { json?: boolean }) => {
-    const db = openDb(resolvePaths().db);
+    const paths = resolvePaths();
+    const config = await loadConfig(paths.config);
+    const db = openDb(paths.db);
     const results: Record<string, unknown>[] = [];
     try {
+      if (config.naukri.enabled && isInstalled(paths)) {
+        try {
+          const r = await naukriSearch(db, config, bridgeRunner(paths));
+          results.push({ company: 'Naukri', ...r });
+          if (!opts.json) console.log(`Naukri: ${r.added} new, ${r.updated} updated, ${r.duplicates} duplicates`);
+        } catch (err) {
+          results.push({ company: 'Naukri', error: (err as Error).message });
+          if (!opts.json) console.log(`Naukri: failed, ${(err as Error).message}`);
+        }
+      }
       for (const company of listCompanies(db)) {
         const now = new Date().toISOString();
         try {
@@ -522,6 +538,206 @@ program
         console.log(`  ${g.value.padEnd(16)} ${g.calls}/${g.applied} calls, ${pct(g.rate)} (likely ${pct(g.low)}-${pct(g.high)})${thin}`);
       }
     }
+  });
+
+program
+  .command('setup')
+  .description('Install an optional add-on')
+  .command('naukri')
+  .description('Install the Naukri add-on: NopeRi, downloaded from GitHub into its own Python environment with uv')
+  .action(async () => {
+    const paths = resolvePaths();
+    await setupNaukri(paths, (line) => console.log(line));
+    console.log(`\nInstalled in ${addonDir(paths).dir}.\nNext, in your own terminal: offerstar naukri login`);
+    console.log('Naukri forbids automated access in its terms; use it for your own account, at low volume, from this laptop.');
+  });
+
+async function askHidden(question: string): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+  const muted = rl as unknown as { _writeToOutput: (s: string) => void; output: NodeJS.WriteStream };
+  muted._writeToOutput = (s: string) => {
+    if (s.startsWith(question)) muted.output.write(question);
+  };
+  const answer = await rl.question(question);
+  rl.close();
+  process.stdout.write('\n');
+  return answer;
+}
+
+const naukri = program.command('naukri').description('The optional Naukri add-on: search, profile refresh and history');
+
+naukri
+  .command('login')
+  .description('Save your Naukri login to the owner-only .env and check it (needs you at a terminal)')
+  .action(async () => {
+    if (!process.stdin.isTTY) throw new Error('run offerstar naukri login yourself, in a terminal; your password is never passed as an argument');
+    const paths = resolvePaths();
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const username = (await rl.question('Naukri email or phone: ')).trim();
+    rl.close();
+    const password = await askHidden('Naukri password (hidden): ');
+    await writeEnv(paths, { NAUKRI_USERNAME: username, NAUKRI_PASSWORD: password });
+    const check = (await bridgeRunner(paths)('check', {})) as { profileId: string };
+    await updateConfig(paths.config, [[['naukri', 'enabled'], true]]);
+    console.log(`Logged in (profile ${check.profileId}). Saved to ${paths.env}, readable only by you. The add-on is now enabled.`);
+  });
+
+naukri
+  .command('search')
+  .description('Search Naukri now with your configured searches (scan also does this when the add-on is enabled)')
+  .action(async () => {
+    const paths = resolvePaths();
+    const config = await loadConfig(paths.config);
+    const db = openDb(paths.db);
+    try {
+      const r = await naukriSearch(db, config, bridgeRunner(paths));
+      console.log(`Naukri: ${r.searched} searches, ${r.added} new, ${r.updated} updated, ${r.duplicates} duplicates.`);
+    } finally {
+      db.close();
+    }
+  });
+
+const variants = naukri.command('variants').description('The truthful profile wordings a refresh rotates through');
+
+variants
+  .command('set <file>')
+  .description('Audit and save profile variants (JSON from the pack skill); they need your approval before use')
+  .action(async (file: string) => {
+    const paths = resolvePaths();
+    const input = VariantsSchema.parse(JSON.parse(await readFile(file, 'utf8')));
+    const db = openDb(paths.db);
+    const problems = await setVariants(paths, await loadProfile(paths.profile), db, input);
+    db.close();
+    if (problems.length) {
+      console.log('The variants were not accepted:');
+      for (const p of problems) console.log(`  - ${p}`);
+      process.exitCode = 1;
+      return;
+    }
+    console.log(`Saved ${input.variants.length} variants. Next, in your own terminal: offerstar naukri variants approve`);
+  });
+
+variants
+  .command('approve')
+  .description('Read the variants and approve them for scheduled refreshes (needs you at a terminal)')
+  .action(async () => {
+    const interactive = process.stdin.isTTY && process.stdout.isTTY;
+    const ok = await approveVariants(resolvePaths(), interactive ? askVariants : undefined);
+    console.log(ok ? 'Approved. Scheduled refreshes will rotate through these, and nothing else.' : 'Not approved.');
+  });
+
+async function askVariants(v: Variants): Promise<boolean> {
+  for (const variant of v.variants) {
+    console.log(`\n[${variant.name}]\nHeadline: ${variant.headline.text}`);
+    if (variant.summary) console.log(`Summary:  ${variant.summary.text}`);
+    if (variant.keySkills.length) console.log(`Key skills: ${variant.keySkills.join(', ')}`);
+  }
+  if (v.resume) console.log(`\nResume uploaded with each refresh: ${v.resume}`);
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await rl.question('\nUse these on your Naukri profile, rotating every few days? [y/N] ');
+  rl.close();
+  return /^y(es)?$/i.test(answer.trim());
+}
+
+naukri
+  .command('refresh')
+  .description('Put the next approved variant on your Naukri profile, if a refresh is due')
+  .option('--force', 'refresh even if the last one was recent')
+  .option('--scheduled', 'started by the daily schedule: waits a random few minutes first')
+  .action(async (opts: { force?: boolean; scheduled?: boolean }) => {
+    const paths = resolvePaths();
+    const config = await loadConfig(paths.config);
+    const db = openDb(paths.db);
+    try {
+      if (opts.scheduled && config.naukri.enabled) await new Promise((r) => setTimeout(r, Math.random() * 20 * 60_000));
+      const result = await refreshProfile(paths, config, db, bridgeRunner(paths), { force: opts.force });
+      console.log(result.status === 'refreshed' ? `Naukri profile refreshed with "${result.variant}".` : `Naukri refresh skipped: ${result.reason}.`);
+    } finally {
+      db.close();
+    }
+  });
+
+naukri
+  .command('signal <kind>')
+  .description('Record a recruiter reaching you through Naukri: call, view or message')
+  .option('--note <text>', 'who, or what about')
+  .action((kind: string, opts: { note?: string }) => {
+    if (!['call', 'view', 'message'].includes(kind)) throw new Error('kind must be call, view or message');
+    const db = openDb(resolvePaths().db);
+    recordSignal(db, kind as SignalKind, opts.note);
+    db.close();
+    console.log(`Recorded a Naukri ${kind}.`);
+  });
+
+naukri
+  .command('insights')
+  .description('Recruiter calls, views and messages per profile variant, per week it was live')
+  .option('--json', 'print machine-readable output')
+  .action((opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    const stats = variantInsights(db);
+    db.close();
+    if (opts.json) return console.log(JSON.stringify(stats));
+    if (!stats.length) return console.log('No refreshes yet.');
+    for (const s of stats) console.log(`${s.variant.padEnd(20)} live ${s.daysLive} days: ${s.calls} calls (${s.callsPerWeek}/week), ${s.views} views, ${s.messages} messages`);
+    console.log('\nA few weeks per variant are needed before the difference means anything.');
+  });
+
+program
+  .command('track')
+  .description('Daily bookkeeping: mark 21-day silences as no reply, sync Naukri application statuses, list closed postings')
+  .option('--json', 'print machine-readable output')
+  .action(async (opts: { json?: boolean }) => {
+    const paths = resolvePaths();
+    const config = await loadConfig(paths.config);
+    const db = openDb(paths.db);
+    try {
+      const noReply = markNoReplies(db);
+      let history: Awaited<ReturnType<typeof syncHistory>> | { error: string } | undefined;
+      if (config.naukri.enabled && isInstalled(paths)) {
+        history = await syncHistory(db, bridgeRunner(paths)).catch((err: Error) => ({ error: err.message }));
+      }
+      const closed = closedApplications(db);
+      db.prepare("INSERT INTO events (kind, data) VALUES ('track', ?)").run(JSON.stringify({ noReply, history }));
+      if (opts.json) return console.log(JSON.stringify({ noReply, history, closed }));
+      console.log(`${noReply.length} applications marked no reply after 21 days.`);
+      if (history && 'error' in history) console.log(`Naukri history: failed, ${history.error}`);
+      else if (history) console.log(`Naukri history: ${history.applications} applications, ${history.added} new, ${history.outcomes} outcomes, ${history.views} views.`);
+      for (const c of closed) console.log(`Posting closed: #${c.job_id} ${c.title}, ${c.company_name} (${c.stage})`);
+    } finally {
+      db.close();
+    }
+  });
+
+program
+  .command('schedule')
+  .description("Run scan, track and the Naukri refresh every morning with this laptop's scheduler")
+  .option('--time <HH:MM>', 'when to run (default: schedule.morning in config.yaml)')
+  .option('--remove', 'remove the daily run')
+  .action(async (opts: { time?: string; remove?: boolean }) => {
+    const paths = resolvePaths();
+    if (opts.remove) {
+      await removeSchedule(paths);
+      return console.log('Removed the daily run.');
+    }
+    const time = opts.time ?? (await loadConfig(paths.config)).schedule.morning;
+    if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('time must be HH:MM');
+    console.log(`${await installSchedule(paths, time)}. Log: ${join(paths.logs, 'daily.log')}`);
+  });
+
+program
+  .command('pack <portal>')
+  .description('Print what the pack skill needs to write portal profile text: naukri, linkedin or workday')
+  .action(async (portal: string) => {
+    if (!['naukri', 'linkedin', 'workday'].includes(portal)) throw new Error('portal must be naukri, linkedin or workday');
+    const paths = resolvePaths();
+    const [config, profile] = await Promise.all([loadConfig(paths.config), loadProfile(paths.profile)]);
+    const fields = {
+      naukri: ['headline', 'keySkills', 'summary'],
+      linkedin: ['headline', 'about', 'topSkills', 'experienceBullets'],
+      workday: ['field-by-field sheet for correcting the resume pre-fill', 'knockout answers from config.yaml'],
+    }[portal];
+    console.log(JSON.stringify({ portal, role: config.role, locations: config.locations, contact: config.contact, fields, blocks: profile.blocks, rules: ['Every line cites the evidence block ids it comes from.', 'Numbers must appear in the cited blocks.', "Use recruiters' search terms only where the profile supports them."] }));
   });
 
 program
