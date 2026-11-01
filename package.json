@@ -1,6 +1,6 @@
 {
   "name": "offerstar",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agentic job search CLI with Claude skills. You approve every application.",
   "license": "MIT",
   "author": "Himanshu Mamgain",
