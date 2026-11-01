@@ -117,7 +117,8 @@ def main():
         print(json.dumps({"error": f"unknown command {name!r}"}))
         return 2
     try:
-        payload = json.loads(sys.stdin.read() or "{}")
+        # utf-8-sig: tolerate a byte-order mark, which some Windows shells add.
+        payload = json.loads(sys.stdin.buffer.read().decode("utf-8-sig") or "{}")
         print(json.dumps(COMMANDS[name](payload)))
         return 0
     except Exception as err:  # reported to the CLI as JSON, never a traceback on stdout

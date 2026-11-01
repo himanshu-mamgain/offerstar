@@ -89,7 +89,8 @@ export function isApproved(file: VariantsFile | undefined): file is VariantsFile
 
 // Audits the variants like resume bullets (cited blocks, no invented
 // numbers) and saves them unapproved.
-export async function setVariants(paths: Paths, profile: Profile, db: DatabaseSync, input: Variants): Promise<string[]> {
+export async function setVariants(paths: Paths, profile: Profile, db: DatabaseSync, raw: z.input<typeof VariantsSchema>): Promise<string[]> {
+  const input = VariantsSchema.parse(raw);
   const problems = input.variants.flatMap((v) => [
     ...auditCited(`${v.name} headline`, v.headline, profile),
     ...(v.summary ? auditCited(`${v.name} summary`, v.summary, profile) : []),
