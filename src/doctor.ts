@@ -5,6 +5,7 @@ import { loadConfig } from './config.ts';
 import { openDb, SCHEMA_VERSION, schemaVersion } from './db.ts';
 import type { Paths } from './paths.ts';
 import { loadProfile } from './profile.ts';
+import { localTypst, TYPST_VERSION, typstVersion } from './resume/typst.ts';
 import { isOwnerOnly } from './secure.ts';
 
 export type Status = 'ok' | 'warn' | 'fail' | 'skip';
@@ -109,6 +110,13 @@ function checkTool(id: string, command: string, missing: Omit<Check, 'id'>): Che
   return version ? { id, status: 'ok', detail: version } : { id, ...missing };
 }
 
+function checkTypst(paths: Paths): Check {
+  const version = typstVersion('typst') ?? (existsSync(localTypst(paths)) ? typstVersion(localTypst(paths)) : undefined);
+  return version
+    ? { id: 'typst', status: 'ok', detail: version }
+    : { id: 'typst', status: 'skip', detail: `not installed; Typst ${TYPST_VERSION} is downloaded on the first resume build` };
+}
+
 export async function runDoctor(paths: Paths): Promise<DoctorReport> {
   const checks: Check[] = [checkNode(), await checkHome(paths)];
   if (checks[1]!.status === 'ok') {
@@ -120,7 +128,7 @@ export async function runDoctor(paths: Paths): Promise<DoctorReport> {
       detail: 'Claude Code not found on PATH; AI steps need it or an API key',
       fix: 'install Claude Code: https://claude.com/claude-code',
     }),
-    checkTool('typst', 'typst', { status: 'skip', detail: 'not installed; downloaded on first resume build' }),
+    checkTypst(paths),
     checkTool('uv', 'uv', { status: 'skip', detail: 'not installed; needed only for the Naukri and OCR add-ons' }),
   );
   return { ok: checks.every((c) => c.status !== 'fail'), checks };
