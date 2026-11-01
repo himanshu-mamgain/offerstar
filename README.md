@@ -22,10 +22,10 @@
 ## How it works
 
 <p align="center">
-  <img src="assets/readme/route.svg" alt="Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, then, coming soon, track records every reply and retro learns what gets calls." width="100%">
+  <img src="assets/readme/route.svg" alt="Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, track records every reply, and retro learns what gets calls." width="100%">
 </p>
 
-> Early development: the evidence profile, resume building, job discovery, the apply flow and tracking work. The Naukri add-on, installers and the learning loop come next.
+> Early beta (v0.1): every step works, from the evidence profile to the weekly retro. Expect rough edges, and please report them.
 
 ## Install
 
@@ -50,7 +50,13 @@ Both scripts verify the download against the release's `checksums.txt`. Once the
 /offerstar:setup                 # role, contact details and your evidence profile
 /offerstar:plan                  # scan your companies and rank the jobs
 /offerstar:apply <jobId>         # a tailored, evidence-grounded draft for your approval
+/offerstar:pack naukri           # portal profile text: naukri, linkedin or workday
+/offerstar:retro                 # weekly: what gets calls, proposed changes, interview prep
 ```
+
+### The learning loop
+
+Offerstar learns from your own results which jobs, channels, posting ages and resume angles get you calls. It only proposes: `offerstar learn propose` works out the numbers and writes them to `~/.offerstar/learnings.md`, and you adopt each change yourself with `offerstar learn approve`. A group needs 10 applications before it is acted on, every rate comes with a likely range, and nothing ever changes the facts in your profile. Adopted lessons show up in `offerstar plan` as "learned:" lines with their evidence.
 
 Claude drafts; the CLI refuses any bullet, number, skill or screening answer the evidence blocks don't support; you approve each application yourself in your own terminal with `offerstar apply approve <jobId>`, then submit it.
 
@@ -81,6 +87,12 @@ npm run offerstar -- rate <id> good|bad
 npm run offerstar -- insights               # call rates by channel, role match, resume variant, with ranges
 npm run offerstar -- track                  # marks 21-day silences as no reply, syncs Naukri statuses
 npm run offerstar -- schedule               # scan, track and the Naukri refresh every morning
+npm run offerstar -- learn propose          # what your results say; updates learnings.md
+npm run offerstar -- learn approve          # adopt the proposals you agree with (at a terminal)
+npm run offerstar -- learn angles backend payments   # compare two truthful resume angles
+npm run offerstar -- learn progress         # call rate of the first 30 applications vs since
+npm run offerstar -- prep                   # repeated interview questions and low-rated rounds
+npm run offerstar -- companies remove <name>   # stop tracking a company
 ```
 
 ### Naukri add-on (optional)

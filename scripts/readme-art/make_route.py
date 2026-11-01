@@ -16,8 +16,8 @@ steps = [
     ("scan", "Find new jobs", True),
     ("plan", "Rank the best fits", True),
     ("apply", "Tailor, check, approve", True),
-    ("track", "Record every reply", False),
-    ("retro", "Learn what gets calls", False),
+    ("track", "Record every reply", True),
+    ("retro", "Learn what gets calls", True),
 ]
 xs = [130 + i * 204 for i in range(len(steps))]
 Y = 104
@@ -67,7 +67,7 @@ nodes_svg = "\n".join(nodes)
 
 svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-labelledby="rt rd">
   <title id="rt">The Offerstar workflow</title>
-  <desc id="rd">Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, then, coming soon, track records every reply and retro learns what gets calls.</desc>
+  <desc id="rd">Six steps in order: setup builds your profile, scan finds new jobs, plan ranks the best fits, apply tailors and checks a resume for your approval, track records every reply, and retro learns what gets calls.</desc>
   <style>
     .sans{{font-family:'Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}}
     .mono{{font-family:'JetBrains Mono','SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace}}

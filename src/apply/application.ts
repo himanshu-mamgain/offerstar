@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Config } from '../config.ts';
 import { openDb } from '../db.ts';
+import { jobFeatures } from '../jobs/features.ts';
+import { suggestAngle, type Learned } from '../learn/learn.ts';
 import { profileSkills, scoreJob, type JobRow, type Score } from '../jobs/score.ts';
 import type { Paths } from '../paths.ts';
 import { slugify, type Profile } from '../profile.ts';
@@ -27,12 +29,15 @@ const folderName = (job: JobRow) => `${job.id}-${slugify(`${job.company_name} ${
 // Everything the apply skill needs in one read: the cleaned posting with its
 // guard flags, the score and gaps, the evidence blocks, and the config fields
 // screening answers may use.
-export function prepareApply(db: DatabaseSync, config: Config, profile: Profile, jobId: number) {
+export function prepareApply(db: DatabaseSync, config: Config, profile: Profile, jobId: number, learned: Learned = { adjustments: [] }) {
   const job = getJob(db, jobId);
   const score = scoreJob(job, config, profileSkills(profile));
+  const angle = suggestAngle(db, learned, features(job, config, score, db).role_match);
   return {
     job: { ...job, skills: JSON.parse(job.skills) as string[], guard_flags: JSON.parse(job.guard_flags) as string[] },
     score,
+    // Set the draft's "angle" to this: a running resume-angle test, or the adopted angle.
+    suggestedAngle: angle ?? null,
     blocks: profile.blocks,
     screening: {
       experienceYears: config.experienceYears,
@@ -50,27 +55,10 @@ export function prepareApply(db: DatabaseSync, config: Config, profile: Profile,
   };
 }
 
-function seniority(title: string): 'senior' | 'junior' | 'mid' {
-  if (/\b(senior|sr\.?|lead|staff|principal|architect|manager|head|director)\b/i.test(title)) return 'senior';
-  if (/\b(junior|jr\.?|associate|intern|graduate|trainee|fresher)\b/i.test(title)) return 'junior';
-  return 'mid';
-}
-
 // The features the learning loop groups by, saved when the application is drafted.
 function features(job: StoredJob, config: Config, score: Score, db: DatabaseSync) {
-  const title = score.parts.title;
-  const mine = config.experienceYears === undefined ? undefined : config.experienceYears >= 5 ? 'senior' : config.experienceYears <= 2 ? 'junior' : 'mid';
-  const order = { junior: 0, mid: 1, senior: 2 };
-  const theirs = seniority(job.title);
   const company = job.company_id ? (db.prepare('SELECT company_type FROM companies WHERE id = ?').get(job.company_id) as { company_type: string | null } | undefined) : undefined;
-  return {
-    role_match: title >= 0.75 ? 'strong' : title >= 0.25 ? 'partial' : 'weak',
-    seniority_match: mine === undefined ? null : order[theirs] === order[mine] ? 'match' : order[theirs] > order[mine] ? 'above' : 'below',
-    company_type: company?.company_type ?? null,
-    skill_overlap: Math.round(score.parts.skills * 100) / 100,
-    days_since_posting: job.posted_at ? Math.max(0, Math.floor((Date.now() - Date.parse(job.posted_at)) / 86_400_000)) : null,
-    location: job.location,
-  };
+  return jobFeatures(job, config, score.parts, company?.company_type ?? null);
 }
 
 export interface RenderResult {
@@ -109,13 +97,13 @@ export async function renderApplication(paths: Paths, config: Config, profile: P
     const version = db.prepare('SELECT id FROM resume_versions WHERE file_hash = ?').get(built.fileHash) as { id: number };
     const f = features(job, config, scoreJob(job, config, profileSkills(profile)), db);
     db.prepare(
-      `INSERT INTO applications (job_id, stage, channel, resume_version_id, folder, check_ok, role_match, seniority_match, company_type, skill_overlap, days_since_posting, location)
-       VALUES (?, 'drafted', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (job_id) DO UPDATE SET resume_version_id = excluded.resume_version_id, folder = excluded.folder, check_ok = excluded.check_ok,
+      `INSERT INTO applications (job_id, stage, channel, resume_version_id, folder, check_ok, role_match, seniority_match, company_type, skill_overlap, days_since_posting, location, resume_angle)
+       VALUES (?, 'drafted', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (job_id) DO UPDATE SET resume_version_id = excluded.resume_version_id, folder = excluded.folder, check_ok = excluded.check_ok, resume_angle = excluded.resume_angle,
          role_match = excluded.role_match, seniority_match = excluded.seniority_match, company_type = excluded.company_type,
          skill_overlap = excluded.skill_overlap, days_since_posting = excluded.days_since_posting, location = excluded.location,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
-    ).run(job.id, job.source, version.id, folder, check.ok ? 1 : 0, f.role_match, f.seniority_match, f.company_type, f.skill_overlap, f.days_since_posting, f.location);
+    ).run(job.id, job.source, version.id, folder, check.ok ? 1 : 0, f.role_match, f.seniority_match, f.company_type, f.skill_overlap, f.days_since_posting, f.location, draft.angle ?? null);
     db.prepare("INSERT INTO events (kind, job_id, data) VALUES ('drafted', ?, ?)").run(job.id, JSON.stringify({ fileHash: built.fileHash, checkOk: check.ok }));
 
     return { ok: check.ok, problems: check.ok ? [] : check.checks.filter((c) => c.status === 'fail').map((c) => `check ${c.id}: ${c.detail}`), folder, resume: resumePath, check };

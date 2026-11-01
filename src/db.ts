@@ -122,6 +122,10 @@ const MIGRATIONS: string[] = [
   -- 1 when the rendered resume passed offerstar check; approval requires it.
   ALTER TABLE applications ADD COLUMN check_ok INTEGER NOT NULL DEFAULT 0;
   `,
+  `
+  -- Which truthful resume angle was sent, for comparing angles' call rates.
+  ALTER TABLE applications ADD COLUMN resume_angle TEXT;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -2,6 +2,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { Config } from '../config.ts';
 import type { Profile } from '../profile.ts';
 import { canonicalSkill, extractSkills } from './terms.ts';
+import { jobFeatures } from './features.ts';
+import { learnedAdjustment, type Learned } from '../learn/learn.ts';
 
 export const WEIGHTS = { skills: 0.45, title: 0.25, location: 0.15, experience: 0.1, freshness: 0.05 } as const;
 
@@ -115,12 +117,15 @@ export function scoreJob(job: JobRow, config: Config, skills: Set<string>, now =
 
 export interface ShortlistItem extends Score {
   job: JobRow;
+  // Adopted lessons that moved this job's score, with their evidence.
+  learned: string[];
 }
 
-// Scores every open job against the current profile and returns the best.
-export function planShortlist(db: DatabaseSync, config: Config, profile: Profile, { limit = 20, minScore = 0 } = {}): ShortlistItem[] {
+// Scores every open job against the current profile, applies the lessons
+// the user adopted, and returns the best.
+export function planShortlist(db: DatabaseSync, config: Config, profile: Profile, { limit = 20, minScore = 0, learned }: { limit?: number; minScore?: number; learned?: Learned } = {}): ShortlistItem[] {
   const skills = profileSkills(profile);
-  const jobs = db.prepare("SELECT * FROM jobs WHERE status = 'open'").all() as unknown as JobRow[];
+  const jobs = db.prepare("SELECT j.*, c.company_type FROM jobs j LEFT JOIN companies c ON c.id = j.company_id WHERE j.status = 'open'").all() as unknown as (JobRow & { source: string; company_type: string | null })[];
   const save = db.prepare(
     `INSERT INTO scores (job_id, profile_hash, total, parts, gaps) VALUES (?, ?, ?, ?, ?)
      ON CONFLICT (job_id, profile_hash) DO UPDATE SET total = excluded.total, parts = excluded.parts, gaps = excluded.gaps,
@@ -132,8 +137,10 @@ export function planShortlist(db: DatabaseSync, config: Config, profile: Profile
   try {
     for (const job of jobs) {
       const score = scoreJob(job, config, skills);
-      save.run(job.id, profile.hash, score.total, JSON.stringify({ ...score.parts, matched: score.matched }), JSON.stringify(score.gaps));
-      if (!score.parts.dealBreaker && score.total >= minScore) scored.push({ job, ...score });
+      const adj = learned && !score.parts.dealBreaker ? learnedAdjustment(learned, { ...jobFeatures(job, config, score.parts, job.company_type), channel: job.source }) : { factor: 1, reasons: [] };
+      const total = Math.min(100, Math.round(score.total * adj.factor));
+      save.run(job.id, profile.hash, total, JSON.stringify({ ...score.parts, matched: score.matched, learnedFactor: adj.factor }), JSON.stringify(score.gaps));
+      if (!score.parts.dealBreaker && total >= minScore) scored.push({ job, ...score, total, learned: adj.reasons });
     }
     db.exec('COMMIT');
   } catch (err) {

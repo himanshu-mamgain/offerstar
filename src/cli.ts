@@ -14,6 +14,7 @@ import { closedApplications, markNoReplies } from './track/track.ts';
 import { addonDir, bridgeRunner, isInstalled, setupNaukri, writeEnv } from './naukri/addon.ts';
 import { approveVariants, naukriSearch, recordSignal, refreshProfile, setVariants, syncHistory, variantInsights, VariantsSchema, type SignalKind, type Variants } from './naukri/naukri.ts';
 import { installSchedule, removeSchedule } from './schedule.ts';
+import { approveProposals, describe, MIN_GROUP, numbersMarkdown, prepList, progress, propose, readLearned, saveProposals, startAngleTest, writeLearnings, type Proposal } from './learn/learn.ts';
 import { loadConfig, updateConfig } from './config.ts';
 import { openDb } from './db.ts';
 import { formatDoctor, runDoctor } from './doctor.ts';
@@ -342,19 +343,20 @@ program
     const paths = resolvePaths();
     const [config, profile] = await Promise.all([loadConfig(paths.config), loadProfile(paths.profile)]);
     const db = openDb(paths.db);
-    const shortlist = planShortlist(db, config, profile, { limit: opts.limit, minScore: opts.minScore });
+    const shortlist = planShortlist(db, config, profile, { limit: opts.limit, minScore: opts.minScore, learned: await readLearned(paths) });
     db.close();
 
     if (opts.json) {
       return console.log(
-        JSON.stringify(shortlist.map(({ job, total, parts, matched, gaps }) => ({ jobId: job.id, title: job.title, company: job.company_name, location: job.location, url: job.url, score: total, parts, matched, gaps, guardFlags: JSON.parse(job.guard_flags) }))),
+        JSON.stringify(shortlist.map(({ job, total, parts, matched, gaps, learned }) => ({ jobId: job.id, title: job.title, company: job.company_name, location: job.location, url: job.url, score: total, parts, matched, gaps, learned, guardFlags: JSON.parse(job.guard_flags) }))),
       );
     }
     if (shortlist.length === 0) return console.log('No open jobs to rank yet. Run offerstar scan first.');
-    shortlist.forEach(({ job, total, matched, gaps }, i) => {
+    shortlist.forEach(({ job, total, matched, gaps, learned }, i) => {
       console.log(`${String(i + 1).padStart(2)}. [${String(total).padStart(3)}] ${job.title}, ${job.company_name}${job.location ? ` (${job.location})` : ''}  #${job.id}`);
       if (matched.length) console.log(`         matches: ${matched.join(', ')}`);
       if (gaps.length) console.log(`         gaps: ${gaps.join(', ')}`);
+      for (const why of learned) console.log(`         learned: ${why}`);
       if (JSON.parse(job.guard_flags).length) console.log('         posting guard flagged instruction-like text; see offerstar jobs show');
     });
   });
@@ -398,7 +400,7 @@ apply
     const [config, profile] = await Promise.all([loadConfig(paths.config), loadProfile(paths.profile)]);
     const db = openDb(paths.db);
     try {
-      console.log(JSON.stringify(prepareApply(db, config, profile, Number(jobId))));
+      console.log(JSON.stringify(prepareApply(db, config, profile, Number(jobId), await readLearned(paths))));
     } finally {
       db.close();
     }
@@ -756,6 +758,109 @@ program
       workday: ['field-by-field sheet for correcting the resume pre-fill', 'knockout answers from config.yaml'],
     }[portal];
     console.log(JSON.stringify({ portal, role: config.role, locations: config.locations, contact: config.contact, fields, blocks: profile.blocks, rules: ['Every line cites the evidence block ids it comes from.', 'Numbers must appear in the cited blocks.', "Use recruiters' search terms only where the profile supports them."] }));
+  });
+
+const learn = program.command('learn').description('The learning loop: what gets calls, proposed for your approval');
+
+learn
+  .command('propose')
+  .description('Work out what your results say, save the proposals, and update the numbers in learnings.md')
+  .option('--json', 'print machine-readable output')
+  .action(async (opts: { json?: boolean }) => {
+    const paths = resolvePaths();
+    const db = openDb(paths.db);
+    try {
+      const { base, proposals } = propose(db);
+      const prog = progress(db);
+      const learned = await readLearned(paths);
+      await saveProposals(paths, proposals);
+      await writeLearnings(paths, numbersMarkdown(base, prog, proposals, learned));
+      if (opts.json) return console.log(JSON.stringify({ base, progress: prog, proposals, learned, learnings: paths.learnings }));
+      console.log(`${base.applied} applications sent, ${base.calls} calls.`);
+      if (proposals.length === 0) console.log(`No proposals yet: a group needs ${MIN_GROUP} applications before Offerstar acts on it.`);
+      for (const p of proposals) console.log(`- ${describe(p)}`);
+      if (proposals.length) console.log('\nReview them, then in your own terminal: offerstar learn approve');
+      console.log(`Numbers written to ${paths.learnings}.`);
+    } finally {
+      db.close();
+    }
+  });
+
+learn
+  .command('approve')
+  .description('Go through the proposals and adopt the ones you agree with (needs you at a terminal)')
+  .action(async () => {
+    const paths = resolvePaths();
+    const interactive = process.stdin.isTTY && process.stdout.isTTY;
+    const db = openDb(paths.db);
+    try {
+      let rl: ReturnType<typeof createInterface> | undefined;
+      const ask = interactive
+        ? async (p: Proposal) => {
+            rl ??= createInterface({ input: process.stdin, output: process.stdout });
+            return /^y(es)?$/i.test((await rl.question(`${describe(p)}\nAdopt? [y/N] `)).trim());
+          }
+        : undefined;
+      const adopted = await approveProposals(paths, db, ask);
+      rl?.close();
+      console.log(adopted.length ? `Adopted ${adopted.length}. offerstar plan uses them from now on.` : 'Nothing adopted.');
+    } finally {
+      db.close();
+    }
+  });
+
+learn
+  .command('angles <angles...>')
+  .description('Start comparing truthful resume angles, e.g. "backend payments"; apply prepare suggests which to use next')
+  .action(async (angles: string[]) => {
+    await startAngleTest(resolvePaths(), angles);
+    console.log(`Testing resume angles: ${angles.join(' vs ')}. The apply skill alternates them on similar jobs.`);
+  });
+
+learn
+  .command('progress')
+  .description('Call rate of your first 30 applications against everything since')
+  .option('--json', 'print machine-readable output')
+  .action((opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    const p = progress(db);
+    db.close();
+    if (opts.json) return console.log(JSON.stringify(p));
+    const line = (label: string, s: typeof p.first) => `${label}: ${s.calls} calls from ${s.applied} (${Math.round(s.rate * 100)}%, likely ${Math.round(s.low * 100)}-${Math.round(s.high * 100)}%)`;
+    console.log(line('First 30', p.first));
+    console.log(line('Since    ', p.since));
+    if (p.since.applied < MIN_GROUP) console.log(`\nToo few applications since the first 30 to compare yet.`);
+  });
+
+program
+  .command('prep')
+  .description('Interview prep: questions that keep coming up, and rounds you rated low')
+  .option('--json', 'print machine-readable output')
+  .action((opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    const list = prepList(db);
+    db.close();
+    if (opts.json) return console.log(JSON.stringify(list));
+    if (list.rounds === 0) return console.log('No interview rounds recorded yet. Record them with offerstar outcome <job> interview --round ... --question ...');
+    if (list.repeated.length) {
+      console.log('Asked more than once:');
+      for (const q of list.repeated) console.log(`  ${q.count}x  ${q.question}`);
+    }
+    if (list.lowRated.length) {
+      console.log('\nRounds you rated 2 or lower:');
+      for (const r of list.lowRated) console.log(`  ${r.heldOn} ${r.round}, ${r.company} (${r.rating}/5): ${r.questions.join('; ') || 'no questions recorded'}`);
+    }
+  });
+
+companies
+  .command('remove <name>')
+  .description('Stop tracking a company (its jobs and applications are kept)')
+  .action((name: string) => {
+    const db = openDb(resolvePaths().db);
+    const { changes } = db.prepare('UPDATE companies SET ats = NULL WHERE name = ? AND ats IS NOT NULL').run(name);
+    db.close();
+    if (!Number(changes)) throw new Error(`not tracking a company called ${name}`);
+    console.log(`Stopped tracking ${name}.`);
   });
 
 program
