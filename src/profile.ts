@@ -1,18 +1,33 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { z } from 'zod';
 import { PROFILE_FOLDERS } from './paths.ts';
 
 const blockTypes = Object.keys(PROFILE_FOLDERS) as [keyof typeof PROFILE_FOLDERS, ...(keyof typeof PROFILE_FOLDERS)[]];
+const yearMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'expected YYYY-MM');
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 export const EvidenceBlockSchema = z
   .object({
     id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'use lowercase words joined by hyphens'),
     type: z.enum(blockTypes),
     title: z.string().min(1),
+    // Employer, school or issuer, for experience, education and certifications.
+    organization: z.string().optional(),
+    start: yearMonth.optional(),
+    end: z.union([yearMonth, z.literal('present')]).optional(),
+    location: z.string().optional(),
     summary: z.string().default(''),
+    // Resume bullets, each a fact the evidence supports.
+    highlights: z.array(z.string()).default([]),
     skills: z.array(z.string()).default([]),
     evidence: z
       .array(z.object({ kind: z.enum(['repo', 'package', 'app', 'certificate', 'link', 'document']), url: z.url() }))
@@ -28,6 +43,21 @@ export const EvidenceBlockSchema = z
   });
 
 export type EvidenceBlock = z.infer<typeof EvidenceBlockSchema>;
+export type EvidenceBlockInput = z.input<typeof EvidenceBlockSchema>;
+
+// Writes a new block file. Never overwrites: the user may have edited it.
+// Returns the path, or undefined when the file already exists.
+export async function writeBlock(profileDir: string, block: EvidenceBlockInput): Promise<string | undefined> {
+  const parsed = EvidenceBlockSchema.parse(block);
+  const path = join(profileDir, PROFILE_FOLDERS[parsed.type], `${parsed.id}.yaml`);
+  try {
+    await writeFile(path, stringify(block), { flag: 'wx' });
+    return path;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'EEXIST') return undefined;
+    throw err;
+  }
+}
 
 export interface ProfileProblem {
   file: string;

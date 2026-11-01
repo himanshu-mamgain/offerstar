@@ -18,7 +18,9 @@ export interface Paths {
   profile: string;
   db: string;
   applications: string;
+  resumes: string;
   learnings: string;
+  bin: string;
 }
 
 // OFFERSTAR_HOME overrides the default ~/.offerstar, mainly for tests.
@@ -30,6 +32,8 @@ export function resolvePaths(home = process.env.OFFERSTAR_HOME || join(homedir()
     profile: join(home, 'profile'),
     db: join(home, 'offerstar.db'),
     applications: join(home, 'applications'),
+    resumes: join(home, 'resumes'),
     learnings: join(home, 'learnings.md'),
+    bin: join(home, 'bin'),
   };
 }

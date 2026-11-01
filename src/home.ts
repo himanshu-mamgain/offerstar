@@ -11,7 +11,7 @@ import { isOwnerOnly, restrictToOwner } from './secure.ts';
 export async function initHome(paths: Paths): Promise<string[]> {
   const created: string[] = [];
 
-  const dirs = [paths.home, paths.profile, paths.applications, ...Object.values(PROFILE_FOLDERS).map((f) => join(paths.profile, f))];
+  const dirs = [paths.home, paths.profile, paths.applications, paths.resumes, ...Object.values(PROFILE_FOLDERS).map((f) => join(paths.profile, f))];
   for (const dir of dirs) {
     if (await mkdir(dir, { recursive: true })) created.push(dir);
   }
