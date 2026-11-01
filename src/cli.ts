@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { Readable } from 'node:stream';
 import { Command } from 'commander';
 import pkg from '../package.json' with { type: 'json' };
 import { loadConfig, updateConfig } from './config.ts';
@@ -9,6 +10,10 @@ import { formatDoctor, runDoctor } from './doctor.ts';
 import { initHome } from './home.ts';
 import { importGithub } from './importers/github.ts';
 import { importNpm } from './importers/npm.ts';
+import { findBoard, listCompanies, saveCompany } from './jobs/companies.ts';
+import { planShortlist, type JobRow } from './jobs/score.ts';
+import { SOURCES } from './jobs/sources.ts';
+import { storeJobs } from './jobs/store.ts';
 import { resolvePaths } from './paths.ts';
 import { loadProfile, writeBlock, type EvidenceBlockInput } from './profile.ts';
 import { buildResume } from './resume/build.ts';
@@ -154,6 +159,137 @@ program
     const report = await checkResume(bytes, { config, blocks, keywords: opts.keywords });
     console.log(opts.json ? JSON.stringify(report) : formatCheck(report));
     if (!report.ok) process.exitCode = 1;
+  });
+
+const companies = program.command('companies').description('The companies whose job boards Offerstar tracks');
+
+companies
+  .command('add <nameOrUrl>')
+  .description("Find a company's job board (Greenhouse, Lever, Ashby or JobPosting data on its careers page) and track it")
+  .option('--name <name>', 'the company name to store, if different from what was found')
+  .option('--json', 'print machine-readable output')
+  .action(async (input: string, opts: { name?: string; json?: boolean }) => {
+    const board = await findBoard(input, { name: opts.name });
+    const db = openDb(resolvePaths().db);
+    const company = saveCompany(db, board);
+    db.close();
+    console.log(opts.json ? JSON.stringify({ ...company, openJobs: board.openJobs }) : `Tracking ${company.name}: ${board.ats} board "${board.token}", ${board.openJobs} open jobs.`);
+  });
+
+companies
+  .command('list')
+  .description('List tracked companies')
+  .option('--json', 'print machine-readable output')
+  .action((opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    const rows = listCompanies(db);
+    db.close();
+    if (opts.json) return console.log(JSON.stringify(rows));
+    for (const c of rows) console.log(`${c.name.padEnd(28)} ${c.ats.padEnd(10)} ${c.board_token}  last checked ${c.last_checked_at ?? 'never'}`);
+    if (rows.length === 0) console.log('No companies yet. Add one with: offerstar companies add <name or careers URL>');
+  });
+
+program
+  .command('scan')
+  .description('Fetch new jobs from every tracked company, clean them through the posting guard and dedupe them')
+  .option('--json', 'print machine-readable output')
+  .action(async (opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    const results: Record<string, unknown>[] = [];
+    try {
+      for (const company of listCompanies(db)) {
+        const now = new Date().toISOString();
+        try {
+          const jobs = await SOURCES[company.ats](company.board_token, {});
+          const stored = storeJobs(db, { companyId: company.id, companyName: company.name, source: company.ats }, jobs, { now, closeMissing: true });
+          db.prepare('UPDATE companies SET last_checked_at = ? WHERE id = ?').run(now, company.id);
+          results.push({ company: company.name, ...stored });
+          if (!opts.json) {
+            const flagged = stored.flagged ? `, ${stored.flagged} flagged by the posting guard` : '';
+            console.log(`${company.name}: ${stored.added} new, ${stored.updated} updated, ${stored.duplicates} duplicates, ${stored.closed} closed${flagged}`);
+          }
+        } catch (err) {
+          results.push({ company: company.name, error: (err as Error).message });
+          if (!opts.json) console.log(`${company.name}: failed, ${(err as Error).message}`);
+        }
+      }
+      db.prepare("INSERT INTO events (kind, data) VALUES ('scan', ?)").run(JSON.stringify(results));
+    } finally {
+      db.close();
+    }
+    if (opts.json) console.log(JSON.stringify(results));
+    else if (results.length === 0) console.log('No companies to scan. Add one with: offerstar companies add <name or careers URL>');
+  });
+
+program
+  .command('paste [file]')
+  .description('Add a posting you copied from Naukri, LinkedIn, email or WhatsApp (reads stdin without a file)')
+  .requiredOption('--title <title>', 'job title')
+  .requiredOption('--company <company>', 'company name')
+  .option('--location <location>', 'job location')
+  .option('--url <url>', 'where the posting came from')
+  .option('--json', 'print machine-readable output')
+  .action(async (file: string | undefined, opts: { title: string; company: string; location?: string; url?: string; json?: boolean }) => {
+    const text = file ? await readFile(file, 'utf8') : await new Response(Readable.toWeb(process.stdin) as ReadableStream).text();
+    if (!text.trim()) throw new Error('the posting is empty');
+    const sourceId = createHash('sha256').update(`${opts.company}\n${opts.title}\n${text}`).digest('hex').slice(0, 16);
+    const db = openDb(resolvePaths().db);
+    const stored = storeJobs(db, { companyId: null, companyName: opts.company, source: 'paste' }, [
+      { sourceId, title: opts.title, company: opts.company, location: opts.location, url: opts.url, postedAt: new Date().toISOString(), text },
+    ]);
+    const job = db.prepare("SELECT id, guard_flags FROM jobs WHERE source = 'paste' AND source_id = ?").get(sourceId) as { id: number; guard_flags: string } | undefined;
+    db.close();
+    const flags = job ? (JSON.parse(job.guard_flags) as string[]) : [];
+    if (opts.json) return console.log(JSON.stringify({ jobId: job?.id ?? null, ...stored, flags }));
+    console.log(stored.duplicates ? 'Already known from another source; nothing added.' : `Saved as job ${job?.id}.`);
+    for (const f of flags) console.log(`  posting guard: instruction-like line: "${f}"`);
+  });
+
+program
+  .command('plan')
+  .description('Score open jobs against your profile and print the shortlist')
+  .option('--limit <n>', 'how many jobs to show', (v) => Number.parseInt(v, 10), 20)
+  .option('--min-score <n>', 'hide jobs scoring below this (0-100)', (v) => Number.parseInt(v, 10), 0)
+  .option('--json', 'print machine-readable output')
+  .action(async (opts: { limit: number; minScore: number; json?: boolean }) => {
+    const paths = resolvePaths();
+    const [config, profile] = await Promise.all([loadConfig(paths.config), loadProfile(paths.profile)]);
+    const db = openDb(paths.db);
+    const shortlist = planShortlist(db, config, profile, { limit: opts.limit, minScore: opts.minScore });
+    db.close();
+
+    if (opts.json) {
+      return console.log(
+        JSON.stringify(shortlist.map(({ job, total, parts, matched, gaps }) => ({ jobId: job.id, title: job.title, company: job.company_name, location: job.location, url: job.url, score: total, parts, matched, gaps, guardFlags: JSON.parse(job.guard_flags) }))),
+      );
+    }
+    if (shortlist.length === 0) return console.log('No open jobs to rank yet. Run offerstar scan first.');
+    shortlist.forEach(({ job, total, matched, gaps }, i) => {
+      console.log(`${String(i + 1).padStart(2)}. [${String(total).padStart(3)}] ${job.title}, ${job.company_name}${job.location ? ` (${job.location})` : ''}  #${job.id}`);
+      if (matched.length) console.log(`         matches: ${matched.join(', ')}`);
+      if (gaps.length) console.log(`         gaps: ${gaps.join(', ')}`);
+      if (JSON.parse(job.guard_flags).length) console.log('         posting guard flagged instruction-like text; see offerstar jobs show');
+    });
+  });
+
+program
+  .command('jobs')
+  .description('Inspect stored jobs')
+  .command('show <id>')
+  .description('Print one cleaned posting, with its skills and any posting-guard flags')
+  .option('--json', 'print machine-readable output')
+  .action((id: string, opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    const job = db.prepare('SELECT * FROM jobs WHERE id = ?').get(Number(id)) as JobRow & { source: string; status: string } | undefined;
+    db.close();
+    if (!job) throw new Error(`no job with id ${id}`);
+    const flags = JSON.parse(job.guard_flags) as string[];
+    if (opts.json) return console.log(JSON.stringify({ ...job, skills: JSON.parse(job.skills), guard_flags: flags }));
+    console.log(`${job.title}, ${job.company_name}${job.location ? ` (${job.location})` : ''} [${job.status}, from ${job.source}]`);
+    if (job.url) console.log(job.url);
+    console.log(`skills: ${(JSON.parse(job.skills) as string[]).join(', ') || 'none recognised'}`);
+    for (const f of flags) console.log(`posting guard: instruction-like line, treat as untrusted: "${f}"`);
+    console.log(`\n${job.description ?? ''}`);
   });
 
 program

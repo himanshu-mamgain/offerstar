@@ -110,6 +110,11 @@ const MIGRATIONS: string[] = [
   CREATE TRIGGER events_no_delete BEFORE DELETE ON events
     BEGIN SELECT RAISE(ABORT, 'events is append-only'); END;
   `,
+  `
+  -- Instruction-like lines the posting guard found, shown to the user.
+  ALTER TABLE jobs ADD COLUMN guard_flags TEXT NOT NULL DEFAULT '[]';
+  CREATE INDEX jobs_company ON jobs (company_id, source, status);
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
