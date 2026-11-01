@@ -66,6 +66,22 @@ npm run offerstar -- status                 # applications by stage, follow-ups 
 npm run offerstar -- outcome <id> interview --round "technical 1" --question "..." --rating 4
 npm run offerstar -- rate <id> good|bad
 npm run offerstar -- insights               # call rates by channel, role match, resume variant, with ranges
+npm run offerstar -- track                  # marks 21-day silences as no reply, syncs Naukri statuses
+npm run offerstar -- schedule               # scan, track and the Naukri refresh every morning
+```
+
+### Naukri add-on (optional)
+
+Naukri's terms forbid automated access, so this is opt-in, for your own account, at low volume, from your own laptop. It uses [NopeRi](https://github.com/Traverser25/NopeRi), which has no licence: Offerstar never ships its code, and `setup naukri` downloads a pinned commit from GitHub into its own Python environment with [uv](https://docs.astral.sh/uv/).
+
+```sh
+npm run offerstar -- setup naukri
+npm run offerstar -- naukri login              # in your own terminal; the password prompt is hidden
+npm run offerstar -- naukri variants set <file>   # 2-3 truthful profile wordings from /offerstar:pack naukri
+npm run offerstar -- naukri variants approve   # you approve them once; any edit needs approval again
+npm run offerstar -- naukri refresh            # rotates to the next approved variant, at most every 3 days
+npm run offerstar -- naukri signal call        # a recruiter called through Naukri
+npm run offerstar -- naukri insights           # recruiter calls and views per variant, per week live
 npm run offerstar -- doctor                 # checks the install and the Offerstar folder
 npm run typecheck
 npm test

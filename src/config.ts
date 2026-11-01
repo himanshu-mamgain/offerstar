@@ -23,6 +23,19 @@ export const ConfigSchema = z.object({
   expectedCtcLpa: z.number().nonnegative().optional(),
   dealBreakers: z.array(z.string()).default([]),
   resume: z.object({ paper: z.enum(['a4', 'us-letter']).default('a4') }).default({ paper: 'a4' }),
+  // The optional Naukri add-on. Low volume by design: a few searches a day
+  // and a profile refresh every few days, from this laptop only.
+  naukri: z
+    .object({
+      enabled: z.boolean().default(false),
+      searches: z
+        .array(z.object({ keyword: z.string().min(1), location: z.string().default(''), experience: z.number().int().nonnegative().default(2), jobAge: z.number().int().positive().default(7) }))
+        .max(5, 'keep it to five searches or fewer')
+        .default([]),
+      pagesPerSearch: z.number().int().min(1).max(2).default(1),
+      refreshEveryDays: z.number().int().min(2).default(3),
+    })
+    .default({ enabled: false, searches: [], pagesPerSearch: 1, refreshEveryDays: 3 }),
   schedule: z
     .object({ morning: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'expected HH:MM') })
     .default({ morning: '08:30' }),

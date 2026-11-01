@@ -21,6 +21,8 @@ export interface Paths {
   resumes: string;
   learnings: string;
   bin: string;
+  addons: string;
+  logs: string;
 }
 
 // OFFERSTAR_HOME overrides the default ~/.offerstar, mainly for tests.
@@ -35,5 +37,7 @@ export function resolvePaths(home = process.env.OFFERSTAR_HOME || join(homedir()
     resumes: join(home, 'resumes'),
     learnings: join(home, 'learnings.md'),
     bin: join(home, 'bin'),
+    addons: join(home, 'addons'),
+    logs: join(home, 'logs'),
   };
 }

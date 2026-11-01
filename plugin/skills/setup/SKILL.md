@@ -85,4 +85,22 @@ offerstar resume build
 offerstar check "<path printed by resume build>"
 ```
 
-Show what `check` reports and fix anything it fails. Finish by telling them the next step is `/offerstar:plan`.
+Show what `check` reports and fix anything it fails.
+
+## 7. Optional: Naukri and the daily schedule
+
+Ask whether they use Naukri. If yes, explain that the add-on uses NopeRi, an unofficial client that breaks Naukri's terms, so it runs only from their own laptop at low volume and their account could be restricted. If they still want it:
+
+```
+offerstar setup naukri
+```
+
+Then they run `offerstar naukri login` themselves in their own terminal (it asks for the password hidden; never ask for it in chat). After that, `/offerstar:pack naukri` writes the profile variants.
+
+Offer the daily run (scan and track every morning, the Naukri refresh every few days):
+
+```
+offerstar schedule
+```
+
+Finish by telling them the next step is `/offerstar:plan`.

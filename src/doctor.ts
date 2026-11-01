@@ -6,6 +6,7 @@ import { openDb, SCHEMA_VERSION, schemaVersion } from './db.ts';
 import type { Paths } from './paths.ts';
 import { loadProfile } from './profile.ts';
 import { localTypst, TYPST_VERSION, typstVersion } from './resume/typst.ts';
+import { isInstalled, NOPERI_COMMIT, readEnv } from './naukri/addon.ts';
 import { isOwnerOnly } from './secure.ts';
 
 export type Status = 'ok' | 'warn' | 'fail' | 'skip';
@@ -117,10 +118,19 @@ function checkTypst(paths: Paths): Check {
     : { id: 'typst', status: 'skip', detail: `not installed; Typst ${TYPST_VERSION} is downloaded on the first resume build` };
 }
 
+async function checkNaukri(paths: Paths): Promise<Check> {
+  const config = await loadConfig(paths.config).catch(() => undefined);
+  if (!config?.naukri.enabled) return { id: 'naukri', status: 'skip', detail: 'add-on not enabled (optional)' };
+  if (!isInstalled(paths)) return { id: 'naukri', status: 'fail', detail: 'enabled in config.yaml but not installed', fix: 'run offerstar setup naukri' };
+  const env = await readEnv(paths);
+  if (!env.NAUKRI_USERNAME || !env.NAUKRI_PASSWORD) return { id: 'naukri', status: 'fail', detail: 'no Naukri login saved', fix: 'run offerstar naukri login' };
+  return { id: 'naukri', status: 'ok', detail: `installed, NopeRi ${NOPERI_COMMIT.slice(0, 7)}` };
+}
+
 export async function runDoctor(paths: Paths): Promise<DoctorReport> {
   const checks: Check[] = [checkNode(), await checkHome(paths)];
   if (checks[1]!.status === 'ok') {
-    checks.push(await checkConfig(paths), await checkProfile(paths), checkDatabase(paths), await checkSecrets(paths));
+    checks.push(await checkConfig(paths), await checkProfile(paths), checkDatabase(paths), await checkSecrets(paths), await checkNaukri(paths));
   }
   checks.push(
     checkTool('claude', 'claude', {
