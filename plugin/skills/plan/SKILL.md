@@ -17,6 +17,8 @@ offerstar plan --json --limit 15
 
 If no companies are tracked, ask which companies they want to work for and add each one with `offerstar companies add "<name or careers page URL>"`. If a company is not found by name, ask for the careers page that lists its jobs.
 
+If the user gives a LinkedIn job link, add it with `offerstar linkedin add "<link>"`; if LinkedIn refuses, ask them to copy the posting and use `offerstar paste`.
+
 If it is after 6 pm local time and this run was scheduled, refresh the shortlist and stop here; do not write notes or drafts for a late catch-up run.
 
 ## 2. Fit notes

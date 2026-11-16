@@ -76,6 +76,7 @@ npm run offerstar -- resume build           # renders a PDF from your evidence b
 npm run offerstar -- check <pdf>            # round-trip parse test, as an ATS would read it
 npm run offerstar -- companies add <name or careers URL>   # finds its Greenhouse, Lever or Ashby board
 npm run offerstar -- scan                   # fetches, cleans and dedupes jobs from every tracked company
+npm run offerstar -- linkedin search         # optional LinkedIn search; see below
 npm run offerstar -- paste --title "..." --company "..." < posting.txt   # a posting copied from anywhere
 npm run offerstar -- plan                   # scores open jobs against your profile; prints the shortlist
 npm run offerstar -- jobs show <id>         # one cleaned posting with its skills and guard flags
@@ -110,6 +111,31 @@ npm run offerstar -- naukri insights           # recruiter calls and views per v
 npm run offerstar -- doctor                 # checks the install and the Offerstar folder
 npm run typecheck
 npm test
+```
+
+### LinkedIn search (optional)
+
+LinkedIn's terms forbid automated access, so this is opt-in and low volume. Offerstar reads LinkedIn's public job pages itself, the ones shown to visitors who are not signed in: no LinkedIn login, no cookies and no third-party scraping service. It sends a few requests a run with pauses between them and says who it is, so LinkedIn may refuse it; `paste` always works as a fallback.
+
+```sh
+npm run offerstar -- linkedin enable           # turn it on; scan then includes it
+npm run offerstar -- linkedin search           # run your searches now
+npm run offerstar -- linkedin add <link or id> # one posting from its LinkedIn link
+```
+
+Searches default to your role in your first city. To set your own, add up to five to `config.yaml`:
+
+```yaml
+linkedin:
+  enabled: true
+  resultsPerSearch: 10
+  searches:
+    - keyword: Node.js backend engineer
+      location: Gurugram
+      postedWithinDays: 7
+    - keyword: Full stack developer NestJS
+      location: India
+      remote: true
 ```
 
 Evidence blocks are YAML files in `~/.offerstar/profile/`; importers never overwrite a block you have edited. The first resume build downloads Typst into `~/.offerstar/bin` and verifies its checksum, unless `typst` is already on your PATH.

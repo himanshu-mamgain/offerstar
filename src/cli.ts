@@ -13,6 +13,7 @@ import { applicationStatus, insights, rateJob, recordOutcome, STAGES, type Stage
 import { closedApplications, markNoReplies } from './track/track.ts';
 import { addonDir, bridgeRunner, isInstalled, setupNaukri, writeEnv } from './naukri/addon.ts';
 import { approveVariants, naukriSearch, recordSignal, refreshProfile, setVariants, syncHistory, variantInsights, VariantsSchema, type SignalKind, type Variants } from './naukri/naukri.ts';
+import { linkedinAdd, linkedinSearch } from './linkedin/linkedin.ts';
 import { installSchedule, removeSchedule } from './schedule.ts';
 import { approveProposals, describe, MIN_GROUP, numbersMarkdown, prepList, progress, propose, readLearned, saveProposals, startAngleTest, writeLearnings, type Proposal } from './learn/learn.ts';
 import { loadConfig, updateConfig } from './config.ts';
@@ -283,6 +284,16 @@ program
         } catch (err) {
           results.push({ company: 'Naukri', error: (err as Error).message });
           if (!opts.json) console.log(`Naukri: failed, ${(err as Error).message}`);
+        }
+      }
+      if (config.linkedin.enabled) {
+        try {
+          const r = await linkedinSearch(db, config);
+          results.push({ company: 'LinkedIn', ...r });
+          if (!opts.json) console.log(`LinkedIn: ${r.added} new, ${r.updated} updated, ${r.duplicates} duplicates${r.skipped ? `, ${r.skipped} left for the next run` : ''}`);
+        } catch (err) {
+          results.push({ company: 'LinkedIn', error: (err as Error).message });
+          if (!opts.json) console.log(`LinkedIn: failed, ${(err as Error).message}`);
         }
       }
       for (const company of listCompanies(db)) {
@@ -612,6 +623,50 @@ naukri
     try {
       const r = await naukriSearch(db, config, bridgeRunner(paths));
       console.log(`Naukri: ${r.searched} searches, ${r.added} new, ${r.updated} updated, ${r.duplicates} duplicates.`);
+    } finally {
+      db.close();
+    }
+  });
+
+const linkedin = program.command('linkedin').description("The optional LinkedIn search: public job pages, read without signing in");
+
+linkedin
+  .command('enable')
+  .description('Turn the LinkedIn search on, so scan includes it')
+  .action(async () => {
+    await updateConfig(resolvePaths().config, [[['linkedin', 'enabled'], true]]);
+    console.log('LinkedIn search enabled; scan now includes it. Set linkedin.searches in config.yaml, or it searches for your role.');
+    console.log("LinkedIn forbids automated access in its terms; keep it low volume, from this laptop. It never signs in to your account.");
+  });
+
+linkedin
+  .command('search')
+  .description('Search LinkedIn now with your configured searches (scan also does this when it is enabled)')
+  .option('--json', 'print machine-readable output')
+  .action(async (opts: { json?: boolean }) => {
+    const paths = resolvePaths();
+    const config = await loadConfig(paths.config);
+    const db = openDb(paths.db);
+    try {
+      const r = await linkedinSearch(db, config);
+      if (opts.json) return console.log(JSON.stringify(r));
+      console.log(`LinkedIn: ${r.searched} searches, ${r.found} found, ${r.added} new, ${r.updated} updated, ${r.duplicates} duplicates.`);
+      if (r.skipped) console.log(`${r.skipped} more are left for the next run (linkedin.maxPostingsPerRun).`);
+    } finally {
+      db.close();
+    }
+  });
+
+linkedin
+  .command('add <urlOrId>')
+  .description('Add one LinkedIn posting from its link or job id')
+  .option('--json', 'print machine-readable output')
+  .action(async (input: string, opts: { json?: boolean }) => {
+    const db = openDb(resolvePaths().db);
+    try {
+      const r = await linkedinAdd(db, input);
+      if (opts.json) return console.log(JSON.stringify(r));
+      console.log(r.duplicates ? `${r.title}, ${r.company}: already known from another source; nothing added.` : `${r.title}, ${r.company}: saved as job ${r.jobId}.`);
     } finally {
       db.close();
     }

@@ -36,6 +36,19 @@ export const ConfigSchema = z.object({
       refreshEveryDays: z.number().int().min(2).default(3),
     })
     .default({ enabled: false, searches: [], pagesPerSearch: 1, refreshEveryDays: 3 }),
+  // The optional LinkedIn search. It reads LinkedIn's public job pages
+  // without signing in. Low volume by design, from this laptop only.
+  linkedin: z
+    .object({
+      enabled: z.boolean().default(false),
+      searches: z
+        .array(z.object({ keyword: z.string().min(1), location: z.string().default(''), postedWithinDays: z.number().int().min(1).max(30).default(7), remote: z.boolean().default(false) }))
+        .max(5, 'keep it to five searches or fewer')
+        .default([]),
+      resultsPerSearch: z.number().int().min(1).max(25).default(10),
+      maxPostingsPerRun: z.number().int().min(1).max(40).default(20),
+    })
+    .default({ enabled: false, searches: [], resultsPerSearch: 10, maxPostingsPerRun: 20 }),
   schedule: z
     .object({ morning: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'expected HH:MM') })
     .default({ morning: '08:30' }),
